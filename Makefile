@@ -29,6 +29,7 @@
 CC = gcc
 LDLIBS =
 CFLAGS = -Wall -Werror
+LDFLAGS = -fPIC -shared
 
 # Source and build directories ending with /
 # DO NOT ADD SPACE AFTER /, COULD RESULT IN UNWANTED DELETION OF FILES
@@ -59,7 +60,7 @@ BIN = $(BINDIR)$(BINNAME)
 all: -setup $(BIN)
 
 $(BIN): $(OBJS)
-	$(CC) $(LDLIBS) $(OBJS) $(TESTFLAGS) -o $@
+	$(CC) $(LDLIBS) $(LDFLAGS) $(OBJS) $(TESTFLAGS) -o $@
 	@echo -e "\n\nBuild successful, result generated in $(PWD)/$(BINDIR)\n\n\n"
 
 $(OBJDIR)%.o: $(SRCDIR)%.c
@@ -88,3 +89,7 @@ deps:
 	@echo "Dependencies: make, $(CC)"
 	@echo "Libraries needed: $(LDLIBS)"
 
+### INSTALL ###
+install: $(BIN)
+	sudo cp $(BIN) /usr/lib/$(BINNAME)
+	sudo cp $(SRCDIR)cclog.h /usr/include/cclog.h
