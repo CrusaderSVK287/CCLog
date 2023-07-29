@@ -9,6 +9,7 @@
 # CC - used C compiler
 # LDLIBS - libraries to be linked, for example -lm
 # CFLAGS - flags used to compile program like -Wall
+# LDFLAGS - flags used during linking of the result binary
 
 # Repository structure for this makefile to work correctly
 # 1. All source files must be under SRCDIR directory
@@ -28,7 +29,7 @@
 # Compiler flags
 CC = gcc
 LDLIBS =
-CFLAGS = -Wall -Werror
+CFLAGS = -Wall -Werror -fPIC -DCCLOG_DEBUG
 LDFLAGS = -fPIC -shared
 
 # Source and build directories ending with /
@@ -65,7 +66,7 @@ $(BIN): $(OBJS)
 
 $(OBJDIR)%.o: $(SRCDIR)%.c
 	@mkdir -p $(shell dirname $@)
-	$(CC) -c $(CFLAGS) $(TESTFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
