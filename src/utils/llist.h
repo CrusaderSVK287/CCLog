@@ -18,12 +18,12 @@ typedef struct cclog_llist {
 } cclog_llist_t;
 
 /**
- * Returns an empty linked list
+ * Returns an linked list with one node containing data
  */
 cclog_llist_t *llist_init(void *data);
 
 /**
- * adds data to list
+ * appends new allocated node to the list and fills it with data
  */
 int llist_add(cclog_llist_t *list, void *data);
 
@@ -33,7 +33,7 @@ int llist_add(cclog_llist_t *list, void *data);
 void *llist_get_index(cclog_llist_t *list, int index);
 
 /**
- * Clears the entire list from heap
+ * Frees every node AND ITS DATA, frees the list itself, does NOT set list to NULL
  */
 void llist_clean(cclog_llist_t *list);
 
