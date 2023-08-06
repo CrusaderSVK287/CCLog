@@ -1,12 +1,20 @@
 #ifndef __OPTIONS_H__
 #define __OPTIONS_H__
 
-#ifdef CCLOG_DEBUG
 #include <stdio.h>
-#define cclog_debug(msg, ...) fprintf(stdout, "CCLOG_DEBUG_MSG: " msg, ##  __VA_ARGS__);
+
+#ifdef CCLOG_DEBUG
+#define cclog_debug(msg, ...) fprintf(stdout, "CCLOG_DEBUG_MSG: " msg "\n", ##  __VA_ARGS__);
 #else
 #define cclog_debug(msg , ...)
 #endif /* CCLOG_DEBUG */
+
+#ifdef CCLOG_NO_ERR
+#define cclog_error(...) 
+#else
+#define cclog_error(msg, ...) \
+    fprintf(stderr, "\e[0;31m***CCLOG ERROR*** : " msg "\n\e[0m", ## __VA_ARGS__);
+#endif /* CCLOG_NO_ERR*/
 
 /**
  * Enum containing all options that are available.

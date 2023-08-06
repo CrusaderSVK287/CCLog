@@ -1,10 +1,9 @@
+#include "cclog.h"
 #include "options.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
-#define opt_error(msg) fprintf(stderr, "\e[0;31m" msg " %s\e[0m\n", strerror(errno))
 
 /* Log file option functions */
 static FILE *log_file;
@@ -18,6 +17,7 @@ static FILE *log_file_get()
 /* open new log file specified in path */
 static int log_file_set(const char *path)
 {
+        cclog_debug("Args: path = %s", path);
         if (!path)
                 return -1;
 
@@ -27,7 +27,7 @@ static int log_file_set(const char *path)
         log_file = fopen(path, "a");
 
         if (!log_file) {
-                opt_error("Failed to set option LOG_FILE");
+                cclog_error("Failed to set option LOG_FILE");
                 return -1;
         }
 
@@ -40,6 +40,7 @@ static int log_file_set(const char *path)
 /* Function returns the value of option specified in opt */
 void* get_opt(option_t opt)
 {
+        cclog_debug("called get_opt for option %d", opt);
         switch (opt) {
                 case OPTIONS_LOG_FILE: return log_file_get();
                 default: return NULL;
@@ -49,6 +50,7 @@ void* get_opt(option_t opt)
 /* Function will set an options (opt) value (value) */
 int set_opt(option_t opt, void *value)
 {
+        cclog_debug("called set_opt for option %d", opt);
         switch (opt) {
                 case OPTIONS_LOG_FILE: return log_file_set((const char *)value);
                 default: return -1;
@@ -58,6 +60,8 @@ int set_opt(option_t opt, void *value)
 /* Function cleans up the options */
 void cleanup_opt()
 {
-        if (log_file)
+        if (log_file) {
                 fclose(log_file);
+                log_file = NULL;
+        }
 }
