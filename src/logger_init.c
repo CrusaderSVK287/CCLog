@@ -1,9 +1,11 @@
 #include "cclog.h"
 #include "options.h"
+#include "logger.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include "utils/utils.h"
 
 /* handler function for one file logging type */
 static int open_single_file(const char *path, const char **argv)
@@ -21,7 +23,7 @@ static int open_single_file(const char *path, const char **argv)
         }
 
         /* Set the log file option */
-        cclog_debug("Opening log file: %s\n", buff);
+        cclog_debug("Opening log file: %s", buff);
         if_failed(set_opt(OPTIONS_LOG_FILE, buff), error);
         
         return 0;
@@ -37,11 +39,8 @@ static int open_multiple_file_mode(const char *path, const char **argv)
         char *home_path;
         char time_buf[128];
 
-        /* Get current time to append to filename */
-        time_t rawtime;
-        struct tm *timeinfo;
-        time(&rawtime);
-        timeinfo = localtime(&rawtime);
+        /* Get current time to prepend to filename */
+        struct tm *timeinfo = util_current_timeinfo();
 
         sprintf(time_buf ,"[%04d-%02d-%02d_%02d:%02d:%02d]", 
                 timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, 
@@ -63,6 +62,21 @@ static int open_multiple_file_mode(const char *path, const char **argv)
        
         return 0; 
 error:
+        cclog_debug("Failed opening log file\n");
+        return -1;
+}
+
+static int add_default_log_levels()
+{
+        /* Info - print msg to tty only */
+        if_failed(cclogger_add_log_level(false, true, CCLOG_TTY_CLR_DEF, NULL), error);
+         /* Msg - print to file only */
+        if_failed(cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL), error);
+        /* Err - print to file and to tty in red*/
+        if_failed(cclogger_add_log_level(true, false, CCLOG_TTY_CLR_RED, NULL), error);  
+        return 0;
+error:
+        cclog_error("Failed to initialise default log_levels");
         return -1;
 }
 
@@ -70,26 +84,37 @@ error:
 
 int cclogger_init(logging_type_t type, const char* path, const char **argv)
 {
-        if (type == LOGGING_SINGLE_FILE)
+        /* Add default log levels */
+        if_failed(add_default_log_levels(), error);
+
+        /* If all other init functions passed, open/crete a log file */
+        if (type == LOGGING_SINGLE_FILE) {
                 open_single_file(path, argv);
-        else if (type == LOGGING_MULTIPLE_FILES)
+        }
+        else if (type == LOGGING_MULTIPLE_FILES) {
                 open_multiple_file_mode(path, argv);
-        else
+        }
+        else {
+                cclog_error("Unknown logging type specified");
                 goto error;
+        }
 
         /* Check whether file was opened */
-        if (!get_opt(OPTIONS_LOG_FILE))
+        if (get_opt(OPTIONS_LOG_FILE) == NULL) {
+                cclog_error("File could not be opened");
                 goto error;
+        }
 
         return 0;
 error:
-        cclog_debug("cclogger_init failed");
+        cclog_error("CCLogger failed to be initialised");
         return -1;
 }
 
 int cclogger_uninit()
 {
         cleanup_opt();
+        cclogger_reset_log_levels();
         return 0;
 }
 

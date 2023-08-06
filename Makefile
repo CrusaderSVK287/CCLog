@@ -29,7 +29,7 @@
 # Compiler flags
 CC = gcc
 LDLIBS =
-CFLAGS = -Wall -Werror -fPIC -DCCLOG_DEBUG
+CFLAGS = -Wall -Wno-format-truncation -Werror -fPIC
 LDFLAGS = -fPIC -shared
 
 # Source and build directories ending with /
