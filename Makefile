@@ -48,6 +48,10 @@ BINNAME = libcclog.so
 #                                                                              #
 ################################################################################
 
+ifeq ($(DEBUG),y)
+	CFLAGS += -DCCLOG_DEBUG -g3
+endif
+
 ### COMPILATION ###
 
 SRCS  = $(shell find $(SRCDIR) -name '*.c')
