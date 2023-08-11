@@ -34,6 +34,23 @@ static int log_file_set(const char *path)
         return 0;
 }
 
+/* Default message format string */
+static char *def_msg_string;
+
+static char *get_def_msg_string()
+{
+        return def_msg_string;
+}
+
+static int set_def_msg_string(const char *value)
+{
+        if (!value)
+                return -1;
+
+        def_msg_string = (char *)value;
+
+        return 0;
+}
 
 /*   option api functions    */
 
@@ -43,6 +60,7 @@ void* get_opt(option_t opt)
         cclog_debug("called get_opt for option %d", opt);
         switch (opt) {
                 case OPTIONS_LOG_FILE: return log_file_get();
+                case OPTIONS_DEF_MSG_FORMAT: return get_def_msg_string();
                 default: return NULL;
         }
 }
@@ -53,6 +71,7 @@ int set_opt(option_t opt, void *value)
         cclog_debug("called set_opt for option %d", opt);
         switch (opt) {
                 case OPTIONS_LOG_FILE: return log_file_set((const char *)value);
+                case OPTIONS_DEF_MSG_FORMAT: return set_def_msg_string((const char *)value);
                 default: return -1;
         }
 }

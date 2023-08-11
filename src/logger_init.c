@@ -7,6 +7,8 @@
 #include <string.h>
 #include "utils/utils.h"
 
+#define DEFAULT_MSG_FORMAT "DEFAULT_MSG_FORMAT_DUMMY"
+
 /* handler function for one file logging type */
 static int open_single_file(const char *path, const char **argv)
 {
@@ -86,6 +88,9 @@ int cclogger_init(logging_type_t type, const char* path, const char **argv)
 {
         /* Add default log levels */
         if_failed(add_default_log_levels(), error);
+
+        /* Set default msg format */
+        if_failed(set_opt(OPTIONS_DEF_MSG_FORMAT, DEFAULT_MSG_FORMAT), error);
 
         /* If all other init functions passed, open/crete a log file */
         if (type == LOGGING_SINGLE_FILE) {

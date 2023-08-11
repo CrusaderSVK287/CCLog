@@ -23,7 +23,8 @@
  *  if it is opened and open a new one on the path provided as a value
  */
 typedef enum option {
-    OPTIONS_LOG_FILE
+    OPTIONS_LOG_FILE,
+    OPTIONS_DEF_MSG_FORMAT,
 } option_t;
 
 /**
