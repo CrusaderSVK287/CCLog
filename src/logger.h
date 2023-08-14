@@ -17,6 +17,7 @@ typedef struct log_level {
     bool log_to_tty;
     cclog_tty_log_color_t color;
     cclog_cb callback;
+    const char *msg_format;
 } log_level_t;
 
 #endif // !__CCLOG_LOGGER_H_add_default_log_levels

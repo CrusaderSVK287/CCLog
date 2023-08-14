@@ -71,11 +71,11 @@ error:
 static int add_default_log_levels()
 {
         /* Info - print msg to tty only */
-        if_failed(cclogger_add_log_level(false, true, CCLOG_TTY_CLR_DEF, NULL), error);
+        if_failed(cclogger_add_log_level(false, true, CCLOG_TTY_CLR_DEF, NULL, NULL), error);
          /* Msg - print to file only */
-        if_failed(cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL), error);
+        if_failed(cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL, NULL), error);
         /* Err - print to file and to tty in red*/
-        if_failed(cclogger_add_log_level(true, false, CCLOG_TTY_CLR_RED, NULL), error);  
+        if_failed(cclogger_add_log_level(true, false, CCLOG_TTY_CLR_RED, NULL, NULL), error);  
         return 0;
 error:
         cclog_error("Failed to initialise default log_levels");

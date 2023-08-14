@@ -141,23 +141,33 @@ static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t
 }
 
 /* Function generates the result message buffer */
-static const char *create_msg_buffer(msg_buff_opt_t *opts)
+static const char *create_msg_buffer(msg_buff_opt_t *opts, log_level_t *log_level)
 {
-        if (!opts)
-                return NULL;
+        if (!opts || !log_level)
+                return STR_EMPTY;
 
+        int ret = 0;
+        
         /* since message buffer is static, we need to clear it on every function call */
         static char msg_buff[MSG_SIZE + 1];
         memset(msg_buff, 0, MSG_SIZE + 1);
 
+        /* index of the end of result buffer */
         int msg_buff_i = 0;
-        int ret = 0;
 
-        const char *string_format = (const char *)get_opt(OPTIONS_DEF_MSG_FORMAT);
+        /* Format from which the log message will be generated */
+        const char *string_format;
+        if (!log_level->msg_format) {
+                string_format = (const char *)get_opt(OPTIONS_DEF_MSG_FORMAT);
+        } else {
+                string_format = log_level->msg_format;
+        }
+
+        /* Buffer for translated variable returned by translation function */
         const char *translation = NULL;
         int len = strnlen(string_format, MSG_SIZE);
         
-        /* Buffer for variable name */
+        /* Buffer for parsed variable name */
         char var_buff[128];
         memset(var_buff, 0, 128);
 
@@ -248,12 +258,14 @@ int _cclogger_log(int line, const char* file, const char *func,
                     "\tcolor:       %d\n"
                     "\tlog_to_file: %d\n"
                     "\tlog_to_tty:  %d\n"
-                    "\tcallback:    %s",
+                    "\tcallback:    %s\n"
+                    "\tformat:      %s\n",
                     level, log_level->color, log_level->log_to_file, log_level->log_to_tty,
-                    (log_level->callback) ? "Yes" : "No");
+                    (log_level->callback) ? "Yes" : "No", 
+                    (log_level->msg_format) ? log_level->msg_format : "NULL");
 
         /* Create message buffer */
-        msg_buff = create_msg_buffer(&buff_opts);
+        msg_buff = create_msg_buffer(&buff_opts, log_level);
 
         /* Write to file */
         if (log_level->log_to_file) {
@@ -290,7 +302,7 @@ exit:
 #define _cclogger_log(...) DO_NOT_CALL_DIRECTLY_USE_cclog_MACRO
 
 int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color, cclog_cb callback)
+        cclog_tty_log_color_t color, cclog_cb callback, const char *msg_format)
 {
         /* Allocate the level struct on the heap */
         log_level_t *level = calloc(1, sizeof(log_level_t)); 
@@ -304,6 +316,7 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
         level->log_to_tty = log_to_tty;
         level->color = color;
         level->callback = callback;
+        level->msg_format = msg_format;
 
         /**
          * If the log level list is no initialised, initialise it with the level,

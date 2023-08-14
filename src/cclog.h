@@ -109,9 +109,13 @@ int _cclogger_log(int line, const char* file, const char *func,
  * @color: enum indicating which color will be used to display the message
  *      to stderr. Has no effect if log_to_tty is false 
  * @callback: callback function called at the end of log function. Wont be called if NULL
+ * @msg_format: If specified, will override the default message format. 
+ *      See cclogger_set_default_message_format for further explanation.
+ *      Specify NULL to not override
  */
 int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color, cclog_cb callback);
+        cclog_tty_log_color_t color, cclog_cb callback, 
+        const char *msg_format_override);
 
 /**
  * Function removes all log levels, including default ones.
