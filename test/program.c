@@ -42,7 +42,7 @@ void generic_usage_test(const char **argv)
         printf("\n\nStarting generic usage test, no errors should pop up\n\n");
         cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH , (const char **)argv);
 
-        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, callback_test);
+        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, callback_test, NULL);
 
         cclog(0, NULL, "Testing message without format");
         cclog(1, NULL, "Testing message %d", 2);
@@ -61,6 +61,8 @@ void default_message_set_test(const char **argv)
         printf("\n\nStarting %s \n\n", __FUNCTION__);
         cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH, (const char **)argv);
 
+        cclogger_add_log_level(false, true, CCLOG_TTY_CLR_DEF, NULL, "Override msg format ${MSG}");
+
         puts("Valid string");
         cclogger_set_default_message_format("${DATE} Testing ok ${LINE} string ${TIME}");
         puts("Missing bracket after dollar");
@@ -74,6 +76,8 @@ void default_message_set_test(const char **argv)
         puts("Environment var");
         cclogger_set_default_message_format("Testing env var. User is ${USER}. ${MSG}");
         cclog(CCLOG_LEVEL_INFO, NULL, "Test");
+
+        cclog(3, NULL, "Override test");
 
         cclogger_uninit();
 }
