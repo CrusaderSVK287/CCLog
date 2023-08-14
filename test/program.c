@@ -39,19 +39,22 @@ static void no_init()
 
 void generic_usage_test(const char **argv)
 {
+        int a = 18;
         printf("\n\nStarting generic usage test, no errors should pop up\n\n");
         cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH , (const char **)argv);
 
         cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, callback_test, NULL);
 
         cclog(0, NULL, "Testing message without format");
+        printf("Recalling callback, rv should be -1. RV = %d\n", cclogger_recall_last_callback(&a));
         cclog(1, NULL, "Testing message %d", 2);
         cclog(2, NULL, "Testing %s %d", "message", 3);
 
-        int a = 18;
         int ret = cclog(3, &a, "Testing callback with priv data %d", a);
 
         printf("ret = %d %d\n", ret, cclogger_last_log_return_value());
+
+        cclogger_recall_last_callback(&a);
 
         cclogger_uninit();
 }
