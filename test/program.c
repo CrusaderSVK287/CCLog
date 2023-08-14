@@ -56,10 +56,33 @@ void generic_usage_test(const char **argv)
         cclogger_uninit();
 }
 
+void default_message_set_test(const char **argv)
+{
+        printf("\n\nStarting %s \n\n", __FUNCTION__);
+        cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH, (const char **)argv);
+
+        puts("Valid string");
+        cclogger_set_default_message_format("${DATE} Testing ok ${LINE} string ${TIME}");
+        puts("Missing bracket after dollar");
+        cclogger_set_default_message_format("Testing missing ${TIME} bracket after $ dollar");
+        puts("Dollar before closing bracket");
+        cclogger_set_default_message_format("Testing dollar ${TIME ${DATE}} before closing bracket");
+        puts("opening bracket before closing bracket {{}");
+        cclogger_set_default_message_format("Testing opening bracket ${TIME{} before closing bracket");
+        puts("Missing closing bracket");
+        cclogger_set_default_message_format("Testing missing ${DATE} closing ${TIME bracket");
+        puts("Environment var");
+        cclogger_set_default_message_format("Testing env var. User is ${USER}. ${MSG}");
+        cclog(CCLOG_LEVEL_INFO, NULL, "Test");
+
+        cclogger_uninit();
+}
+
 void program(const char **argv)
 {
         generic_usage_test(argv);
         no_init();
         no_levels(argv);
+        default_message_set_test(argv);
 }
 
