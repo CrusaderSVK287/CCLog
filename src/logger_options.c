@@ -66,6 +66,15 @@ static int set_log_ret_value(int value) {
         return 0;
 }
 
+/* Last callback option*/
+cclog_cb last_callback = NULL;
+
+static cclog_cb get_last_callback() { return last_callback; }
+static int set_last_callback(cclog_cb cb) {
+        last_callback = cb;
+        return 0;
+}
+
 /*   option api functions    */
 
 /* Function returns the value of option specified in opt */
@@ -76,6 +85,7 @@ void* get_opt(option_t opt)
                 case OPTIONS_LOG_FILE: return get_log_file();
                 case OPTIONS_DEF_MSG_FORMAT: return get_def_msg_string();
                 case OPTIONS_LAST_LOG_RET: return get_log_ret_value();
+                case OPTIONS_LAST_CALLBACK: return get_last_callback();
                 default: return NULL;
         }
 }
@@ -88,6 +98,7 @@ int set_opt(option_t opt, void *value)
                 case OPTIONS_LOG_FILE: return set_log_file((const char *)value);
                 case OPTIONS_DEF_MSG_FORMAT: return set_def_msg_string((const char *)value);
                 case OPTIONS_LAST_LOG_RET: return set_log_ret_value(*(int*)value);
+                case OPTIONS_LAST_CALLBACK: return set_last_callback((cclog_cb)value);
                 default: return -1;
         }
 }

@@ -26,6 +26,7 @@ typedef enum option {
     OPTIONS_LOG_FILE,
     OPTIONS_DEF_MSG_FORMAT,
     OPTIONS_LAST_LOG_RET,
+    OPTIONS_LAST_CALLBACK,
 } option_t;
 
 /**

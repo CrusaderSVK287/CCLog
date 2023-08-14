@@ -293,9 +293,12 @@ int _cclogger_log(int line, const char* file, const char *func,
                 rv = log_level->callback(msg_buff, priv);
         }
 
+        /* Set the last callback */
+        set_opt(OPTIONS_LAST_CALLBACK, log_level->callback);
 exit:
         va_end(args);
 
+        /* Set the last return value */
         set_opt(OPTIONS_LAST_LOG_RET, &rv);
         return rv;
 }
@@ -436,3 +439,13 @@ int cclogger_last_log_return_value()
         return *(int*)get_opt(OPTIONS_LAST_LOG_RET);
 }
 
+int cclogger_recall_last_callback(void *priv)
+{
+        cclog_cb cb = (cclog_cb)get_opt(OPTIONS_LAST_CALLBACK);
+
+        if (!cb) {
+                return -1;
+        }
+
+        return cb(STR_EMPTY, priv);
+}

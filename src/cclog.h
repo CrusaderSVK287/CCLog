@@ -157,5 +157,18 @@ int cclogger_set_default_message_format(const char *str);
  */
 int cclogger_last_log_return_value();
 
+/**
+ * Calls the callback function from the last log event with priv data.
+ * NOTE: msg will be empty string instead of generated message
+ * The last callback is also updated if the log level doesnt have a callback 
+ * specified, in this case, the function will just not call anything and
+ * return -1 immediately
+ *
+ * @priv: private data that will be passed into the callback 
+ * @return: -1 if the last callback is NULL, otherwise returns whatever
+ *      the callback returns
+ */
+int cclogger_recall_last_callback(void *priv);
+
 #endif /* __CCLOG_H__ */
 
