@@ -7,7 +7,7 @@
 #include <string.h>
 #include "utils/utils.h"
 
-#define DEFAULT_MSG_FORMAT "DEFAULT_MSG_FORMAT_DUMMY"
+#define DEFAULT_MSG_FORMAT "[${DATE}_${TIME}]${FILE}:${LINE}:${MSG}"
 
 /* handler function for one file logging type */
 static int open_single_file(const char *path, const char **argv)

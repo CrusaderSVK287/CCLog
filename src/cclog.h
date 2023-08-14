@@ -120,5 +120,32 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
  */
 void cclogger_reset_log_levels();
 
+/**
+ * Function sets default message format for log messages. This format string 
+ * looks like this: "[${DATE}_${TIME}]${FILE}:${LINE}:${MSG}"
+ * This string dictates how log messages will look like. It contains variables
+ * inside ${} blocks that you can use. Instead of built-in variables you can 
+ * also use an environment variable (eighter already defined or exported)
+ * Syntax for this string is really simple. Every character except ${} blocks
+ * is inluded in the result log message and variables inside ${} blocks are 
+ * inserted. Example:
+ *      format: "( ${DATE} ) ${TIME} : ${MSG}"
+ *      result: "( 2023-14-8 ) 9:17:23 : log message specified in cclog"
+ * List of build in variables:
+ *      FILE - File in which the log was called
+ *      LINE - Line of code on which the log was called
+ *      FUNCTION - Name of function in which the log was called
+ *      DATE - Current date in YYYY-MM-DD format
+ *      TIME - Current time in HH:MM:SS format
+ *      YYYY - Current year
+ *      MM - Current month (1 to 12)
+ *      DD - Current day (1 to 31)
+ *      HOUR - Current hour 
+ *      MIN - Current minute
+ *      SEC - Current second
+ * Note: All time and dates are local time
+ */
+int cclogger_set_default_message_format(const char *str);
+
 #endif /* __CCLOG_H__ */
 

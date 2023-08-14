@@ -48,6 +48,7 @@ static int set_def_msg_string(const char *value)
                 return -1;
 
         def_msg_string = (char *)value;
+        cclog_debug("Setting new default msg_string: %s", value);
 
         return 0;
 }

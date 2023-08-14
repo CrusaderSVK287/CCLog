@@ -10,6 +10,22 @@
 #include <string.h>
 #include <time.h>
 
+#define STR_EMPTY ""
+
+#define VAR_FILE "FILE"
+#define VAR_LINE "LINE"
+#define VAR_FUNC "FUNCTION"
+#define VAR_DATE "DATE"
+#define VAR_TIME "TIME"
+#define VAR_MSG "MSG"
+
+#define VAR_YEAR "YYYY"
+#define VAR_MONTH "MM"
+#define VAR_DAY "DD"
+#define VAR_HOUR "HOUR"
+#define VAR_MIN "MIN"
+#define VAR_SEC "SEC"
+
 /* Max size of the log message */
 #define MSG_SIZE 1000
 
@@ -54,31 +70,122 @@ static const char *pair_clr(int num)
         return "";
 }
 
+static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t *opts)
+{
+        if (!var)
+                return STR_EMPTY;
+
+        struct tm *timeinfo = util_current_timeinfo();
+        
+        /* clear the static buffer before use */
+        static char var_buff[MSG_SIZE + 1];
+        memset(var_buff, 0, MSG_SIZE + 1);
+
+        if (!strcmp(var, VAR_MSG)) {
+                vsnprintf(var_buff, MSG_SIZE, opts->msg, *opts->valist);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_FILE)) {
+                return opts->file;
+        }
+        if (!strcmp(var, VAR_LINE)) {
+                snprintf(var_buff, MSG_SIZE, "%d", opts->line);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_FUNC)) {
+                return opts->func;
+        }
+        if (!strcmp(var, VAR_DATE)) {
+                snprintf(var_buff, MSG_SIZE, "%d-%d-%d", 
+                        timeinfo->tm_year + 1900, 
+                        timeinfo->tm_mon + 1, 
+                        timeinfo->tm_mday);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_TIME)) {
+                snprintf(var_buff, MSG_SIZE, "%d:%d:%d", 
+                        timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_YEAR)) {
+                snprintf(var_buff, MSG_SIZE, "%d", timeinfo->tm_year + 1900);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_MONTH)) {
+                snprintf(var_buff, MSG_SIZE, "%d", timeinfo->tm_mon + 1);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_DAY)) {
+                snprintf(var_buff, MSG_SIZE, "%d", timeinfo->tm_mday);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_HOUR)) {
+                snprintf(var_buff, MSG_SIZE, "%d", timeinfo->tm_hour);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_MIN)) {
+                snprintf(var_buff, MSG_SIZE, "%d", timeinfo->tm_min);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_SEC)) {
+                snprintf(var_buff, MSG_SIZE, "%d", timeinfo->tm_sec);
+                return var_buff;
+        }
+
+        const char *env = getenv(var);
+        if (!env) {
+                cclog_error("%s is not a built-in variable, "
+                            "nor is it a defined environmental variable", var);
+        }
+        return (env) ? env : STR_EMPTY;
+}
+
 /* Function generates the result message buffer */
 static const char *create_msg_buffer(msg_buff_opt_t *opts)
 {
         if (!opts)
                 return NULL;
 
+        /* since message buffer is static, we need to clear it on every function call */
         static char msg_buff[MSG_SIZE + 1];
         memset(msg_buff, 0, MSG_SIZE + 1);
-        char va_msg_buff[MSG_SIZE + 1];
-        memset(va_msg_buff, 0, MSG_SIZE + 1);
 
-        /* get current timeinfo */
-        struct tm *timeinfo = util_current_timeinfo();
+        int msg_buff_i = 0;
+        int ret = 0;
 
-        /* create a buffer for message from user */
-        vsnprintf(va_msg_buff, MSG_SIZE, opts->msg, *opts->valist);
+        const char *string_format = (const char *)get_opt(OPTIONS_DEF_MSG_FORMAT);
+        const char *translation = NULL;
+        int len = strnlen(string_format, MSG_SIZE);
+        
+        /* Buffer for variable name */
+        char var_buff[128];
+        memset(var_buff, 0, 128);
 
-        /* create the result buffer containing the message from user */
-        snprintf(msg_buff, MSG_SIZE, 
-                "[%04d-%02d-%02d_%02d:%02d:%02d]%s:%d %s", 
-                timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, 
-                timeinfo->tm_mday, 
-                timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, 
-                opts->file, opts->line ,va_msg_buff);
+        for (int i = 0; i < len; i++) {
+                if (string_format[i] == '$') {
+                        ret = sscanf(string_format + i, "${%[^${}]}", var_buff);
+                        cclog_debug("Parsing variable in message: %s, ret = %d", var_buff, ret);
+                        
+                        /* Exactly one string should be parsed, see format string above */
+                        if (ret != 1) {
+                                cclog_error("Message string format is incorrect,"
+                                            " message may not be complete");
+                                goto error;
+                        }
 
+                        translation = msg_buffer_variable_translate(var_buff, opts);
+                        strncat(msg_buff, translation, MSG_SIZE - msg_buff_i);
+
+                        msg_buff_i += strlen(translation);
+                        /* var buff for var name and +3 for ${} */
+                        i += strlen(var_buff) + 2;
+                } else {
+                        msg_buff[msg_buff_i] = string_format[i];
+                        msg_buff_i++;
+                }
+        }
+
+error:
         return msg_buff;
 }
 
@@ -226,5 +333,86 @@ void cclogger_reset_log_levels()
                 llist_clean(log_levels_list);
                 log_levels_list = NULL;
         }
+}
+
+/**
+ * Simple function that checks whether a syntax for message format is met
+ * For example "This is test ${MSG}" is valid while "This is not ${valid" is not 
+ * Algorhitm explanation:
+ * 1. Traverse every symbol in message format.
+ * 2. if current symbol is $:
+ *          check if next symbol is {
+ *          continue traversing.
+ *          if current symbol is }:
+ *                  continue traversing from step 2
+ *          if current symbol is $ or {:
+ *                  display error, return -1 
+ * 3. If traversed entire string with no errors, return 0
+ */
+static int message_format_parse(const char *msg)
+{
+        int len = strlen(msg);
+        
+        cclog_debug("Parsing message format %s", msg);
+        /* 1. Traverse every symbol in message format */
+        for (int i = 0; i < len; i++) {
+                cclog_debug("\tToken %d: %c", i, msg[i]);
+                
+                /* 2. if current symbol is $ */
+                if (msg[i] == '$') {
+                        /* check if next symbol is { */
+                        i++;
+                        cclog_debug("\tToken %d: %c", i, msg[i]);
+                        if (msg[i] != '{') {
+                                cclog_error("Message format syntax error:"
+                                            " Expected '{' after $ at index %d", i);
+                                return -1;
+                        }
+
+                        /* continue traversing while symbol is not } or enf od string is reached */
+                        i++;
+                        while (msg[i] != '}' && i < len) {
+                                /* If current symbol is $ or {, display error and return -1 */
+                                cclog_debug("\tToken %d: %c", i, msg[i]);
+                                if (msg[i] == '$') {
+                                        cclog_error("Message format syntax error:"
+                                                    " '$' Before closing bracket");
+                                        return -1;
+                                }
+                                if (msg[i] == '{') {
+                                        cclog_error("Message format syntax error:"
+                                                    " '{' Before closing bracket");
+                                        return -1;
+                                }
+
+                                i++;
+                        }
+
+                        /* In case the end of string is reached, check whether the last } is present */
+                        if (msg[i] != '}') {
+                                cclog_error("Message format syntax error: Missing '}' at %d", i);
+                                return -1;
+                        }
+                }
+        }
+
+        /* No errors, return 0 */
+        cclog_debug("Message format \"%s\" is OK", msg);
+        return 0;
+}
+
+int cclogger_set_default_message_format(const char *str)
+{
+        if (!str)
+                return -1;
+
+        if_failed(set_opt(OPTIONS_DEF_MSG_FORMAT, (void*) str), error);
+
+        if_failed(message_format_parse(str), error);
+
+        return 0;
+error:
+        cclog_error("Failed to set default message format");
+        return -1;
 }
 
