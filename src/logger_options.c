@@ -9,13 +9,13 @@
 static FILE *log_file;
 
 /* return the pointer to the file struct pointer */
-static FILE *log_file_get()
+static FILE *get_log_file()
 {
         return (log_file) ? log_file : NULL;
 }
 
 /* open new log file specified in path */
-static int log_file_set(const char *path)
+static int set_log_file(const char *path)
 {
         cclog_debug("Args: path = %s", path);
         if (!path)
@@ -53,6 +53,19 @@ static int set_def_msg_string(const char *value)
         return 0;
 }
 
+/* 
+ * Last cclog() return value, usefull for example for getting return value 
+ * of the callback function outside of if statement
+ */
+
+static int log_ret_value = 0;
+
+static int *get_log_ret_value() { return &log_ret_value; }
+static int set_log_ret_value(int value) {
+        log_ret_value = value;
+        return 0;
+}
+
 /*   option api functions    */
 
 /* Function returns the value of option specified in opt */
@@ -60,8 +73,9 @@ void* get_opt(option_t opt)
 {
         cclog_debug("called get_opt for option %d", opt);
         switch (opt) {
-                case OPTIONS_LOG_FILE: return log_file_get();
+                case OPTIONS_LOG_FILE: return get_log_file();
                 case OPTIONS_DEF_MSG_FORMAT: return get_def_msg_string();
+                case OPTIONS_LAST_LOG_RET: return get_log_ret_value();
                 default: return NULL;
         }
 }
@@ -71,8 +85,9 @@ int set_opt(option_t opt, void *value)
 {
         cclog_debug("called set_opt for option %d", opt);
         switch (opt) {
-                case OPTIONS_LOG_FILE: return log_file_set((const char *)value);
+                case OPTIONS_LOG_FILE: return set_log_file((const char *)value);
                 case OPTIONS_DEF_MSG_FORMAT: return set_def_msg_string((const char *)value);
+                case OPTIONS_LAST_LOG_RET: return set_log_ret_value(*(int*)value);
                 default: return -1;
         }
 }
