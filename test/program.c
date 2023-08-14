@@ -51,7 +51,7 @@ void generic_usage_test(const char **argv)
         int a = 18;
         int ret = cclog(3, &a, "Testing callback with priv data %d", a);
 
-        printf("ret = %d\n", ret);
+        printf("ret = %d %d\n", ret, cclogger_last_log_return_value());
 
         cclogger_uninit();
 }

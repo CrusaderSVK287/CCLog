@@ -151,5 +151,11 @@ void cclogger_reset_log_levels();
  */
 int cclogger_set_default_message_format(const char *str);
 
+/**
+ * Returns the returned value of the last cclog() function. 
+ * Usefull for example for getting callback return value 
+ */
+int cclogger_last_log_return_value();
+
 #endif /* __CCLOG_H__ */
 

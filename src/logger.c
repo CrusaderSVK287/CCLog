@@ -214,14 +214,14 @@ static cclog_llist_t *log_levels_list = NULL;
 int _cclogger_log(int line, const char* file, const char *func,
         int level, void* priv, const char *msg, ...)
 {
-        if (!file || !func || !msg)
-                return -1;
-
         int rv = -1;
         const char *msg_buff;
 
         va_list args;
         va_start(args, msg);
+
+        if (!file || !func || !msg)
+                goto exit;
 
         /* convenience struct to hold arguments */
         msg_buff_opt_t buff_opts = {
@@ -295,6 +295,8 @@ int _cclogger_log(int line, const char* file, const char *func,
 
 exit:
         va_end(args);
+
+        set_opt(OPTIONS_LAST_LOG_RET, &rv);
         return rv;
 }
 
@@ -427,5 +429,10 @@ int cclogger_set_default_message_format(const char *str)
 error:
         cclog_error("Failed to set default message format");
         return -1;
+}
+
+int cclogger_last_log_return_value() 
+{
+        return *(int*)get_opt(OPTIONS_LAST_LOG_RET);
 }
 
