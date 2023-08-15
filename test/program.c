@@ -1,5 +1,6 @@
 #include "tests.h"
 #include <cclog.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -37,14 +38,20 @@ static void no_init()
         cclog(0, NULL, "This should fail");
 }
 
+static cclog_callback_mapping_t cclog_cb_maps[] = {
+        {"callback_test", callback_test}
+};
+
 void generic_usage_test(const char **argv)
 {
         int a = 18;
         printf("\n\nStarting generic usage test, no errors should pop up\n\n");
         cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH , (const char **)argv);
 
-        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, callback_test, NULL);
-
+        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], "{$DATE} ${MSG}");
+        cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL, "String ${MSG}");
+        cclogger_export_config("/home/lukas/TestExort.json");
+        
         cclog(0, NULL, "Testing message without format");
         printf("Recalling callback, rv should be -1. RV = %d\n", cclogger_recall_last_callback(&a));
         cclog(1, NULL, "Testing message %d", 2);
