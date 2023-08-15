@@ -23,6 +23,7 @@
  *  if it is opened and open a new one on the path provided as a value
  */
 typedef enum option {
+    OPTIONS_LOGGER_INITIALISED,
     OPTIONS_LOG_FILE,
     OPTIONS_LOG_METHOD,
     OPTIONS_LOG_FILE_PATH,

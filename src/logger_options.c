@@ -5,6 +5,15 @@
 #include <string.h>
 #include <errno.h>
 
+/* logger initialised */
+static int logger_initialised = 0;
+
+static int *get_logger_initialised() { return &logger_initialised;}
+static int set_logger_initialised(int value) {
+        logger_initialised = value;
+        return 0;
+}
+
 /* Log file option functions */
 static FILE *log_file = NULL;
 static char *log_file_path = NULL;
@@ -97,6 +106,7 @@ void* get_opt(option_t opt)
 {
         cclog_debug("called get_opt for option %d", opt);
         switch (opt) {
+                case OPTIONS_LOGGER_INITIALISED: return get_logger_initialised();
                 case OPTIONS_LOG_FILE: return get_log_file();
                 case OPTIONS_LOG_METHOD: return get_log_method();
                 case OPTIONS_LOG_FILE_PATH: return get_log_file_path();
@@ -112,6 +122,7 @@ int set_opt(option_t opt, void *value)
 {
         cclog_debug("called set_opt for option %d", opt);
         switch (opt) {
+                case OPTIONS_LOGGER_INITIALISED: return set_logger_initialised(*(int*)value);
                 case OPTIONS_LOG_FILE: return set_log_file((const char *)value);
                 case OPTIONS_LOG_METHOD: return set_log_method(*(int*)value);
                 case OPTIONS_LOG_FILE_PATH: return set_log_file_path(value);
