@@ -84,3 +84,13 @@ void llist_clean(cclog_llist_t *list)
         free(list);
 }
 
+void llist_foreach(cclog_llist_t *llist, llist_foreach_func func, void *priv)
+{
+        if (!llist || !func)
+                return;
+
+        for (int i = 0; i < llist->num_of_entries; i++) {
+                func(llist_get_index(llist, i), priv);
+        }
+}
+

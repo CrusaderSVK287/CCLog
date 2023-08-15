@@ -1,6 +1,8 @@
 #ifndef __CCLOG_LLIST_H__
 #define __CCLOG_LLIST_H__
 
+typedef int (*llist_foreach_func)(void *data, void *priv);
+
 /**
  * Node of linked list
  */
@@ -36,6 +38,12 @@ void *llist_get_index(cclog_llist_t *list, int index);
  * Frees every node AND ITS DATA, frees the list itself, does NOT set list to NULL
  */
 void llist_clean(cclog_llist_t *list);
+
+/**
+ * Function loops through all nodes in a list and calls func with the node 
+ * and priv data as parameters
+ */
+void llist_foreach(cclog_llist_t *llist, llist_foreach_func func, void *priv);
 
 #endif /* __CCLOG_LLIST_H__ */
 
