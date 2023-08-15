@@ -1,5 +1,6 @@
 #include "logger.h"
 #include "cclog.h"
+#include "json.h"
 #include "options.h"
 #include "utils/llist.h"
 #include "utils/defines.h"
@@ -307,7 +308,7 @@ exit:
 #define _cclogger_log(...) DO_NOT_CALL_DIRECTLY_USE_cclog_MACRO
 
 int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color, cclog_cb callback, const char *msg_format)
+        cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, const char *msg_format)
 {
         /* Allocate the level struct on the heap */
         log_level_t *level = calloc(1, sizeof(log_level_t)); 
@@ -320,7 +321,12 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
         level->log_to_file = log_to_file;
         level->log_to_tty = log_to_tty;
         level->color = color;
-        level->callback = callback;
+ 
+        if (callback) {
+                level->callback = callback->func_ptr;
+                level->cb_name = callback->func_name;
+        }
+
         level->msg_format = msg_format;
 
         /**
@@ -449,3 +455,73 @@ int cclogger_recall_last_callback(void *priv)
 
         return cb(STR_EMPTY, priv);
 }
+
+
+int export_log_level(void *data, void *priv)
+{
+        if (!data)
+                return -1;
+
+        char buffer[MSG_SIZE];
+
+        log_level_t *log_level = (log_level_t *)data;
+
+        /* Since we are in array, the name will be ignored regardless */
+        json_add_object("log_level");
+
+        json_add_parameter("log_to_tty", bool_to_str(log_level->log_to_tty));
+        json_add_parameter("log_to_file", bool_to_str(log_level->log_to_file));
+        
+        sprintf(buffer, "%d", log_level->color);
+        json_add_parameter("color", buffer);
+
+        if (log_level->msg_format) {
+                sprintf(buffer, "\"%s\"", log_level->msg_format);
+                json_add_parameter("msg_format", buffer);
+        }
+
+        if (log_level->callback && log_level->cb_name) {
+                sprintf(buffer, "\"%s\"", log_level->cb_name);
+                json_add_parameter("callback", buffer);
+        }
+        
+        json_end_object();
+
+        return 0;
+}
+
+int cclogger_export_config_json(const char *path)
+{
+        if (!path)
+                return -1;
+
+        FILE *file = fopen(path ,"w");
+        if (!file) {
+                return -1;
+        }
+
+        char buff[BUFSIZ] = "";
+
+        json_init_buffer();
+
+        json_start_buffer();
+        sprintf(buff, "\"%s\"", (const char *)get_opt(OPTIONS_LOG_FILE_PATH));
+        json_add_parameter("log_file_path", buff);
+        sprintf(buff, "%d", *(int*)get_opt(OPTIONS_LOG_METHOD));
+        json_add_parameter("log_method", buff);;
+        sprintf(buff, "\"%s\"", (const char *)get_opt(OPTIONS_DEF_MSG_FORMAT));
+        json_add_parameter("def_msg_format", buff);
+        
+        json_add_array("log_levels");
+        llist_foreach(log_levels_list, export_log_level, NULL);
+        json_end_array();
+        
+        json_end_buffer();
+
+        fprintf(file, "%s", json_get_buffer());
+
+        json_free_buffer();
+        fclose(file);
+        return 0;
+}
+

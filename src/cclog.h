@@ -14,6 +14,25 @@
  */
 typedef int (*cclog_cb)(const char* msg, void* priv);
 
+/**
+ * Mapping structure that holds names of callback functions and pointers to 
+ * those functions. Every callback MUST be mapped into the structure. 
+ * It is highly recommended to put all callbacks to single map pool like this: 
+ * static cclog_callback_mapping_t cclog_cb_maps[] = {
+ *       {"callback_test", callback_test},
+ *       {"another_callback", func_ptr},
+ *       {...}
+ * };
+ *
+ * This structure array needs to be passed to cclog_import_config() function 
+ * for this function to be able to generate log levels with callbacks.
+ * See the function declaration for more information
+ */
+typedef struct cclog_cb_mapping {
+    const char *func_name;
+    cclog_cb func_ptr;
+} cclog_callback_mapping_t;
+
 typedef enum cclog_default_log_levels {
     CCLOG_LEVEL_INFO,   /* Print to stderr in default color */
     CCLOG_LEVEL_MSG,    /* Print to file only */
@@ -114,7 +133,7 @@ int _cclogger_log(int line, const char* file, const char *func,
  *      Specify NULL to not override
  */
 int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color, cclog_cb callback, 
+        cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, 
         const char *msg_format_override);
 
 /**
@@ -169,6 +188,12 @@ int cclogger_last_log_return_value();
  *      the callback returns
  */
 int cclogger_recall_last_callback(void *priv);
+
+/**
+ * Function saves current cclogger config into a file provided in path. 
+ * This file is stored in json format.
+ */
+int cclogger_export_config_json(const char *path);
 
 #endif /* __CCLOG_H__ */
 
