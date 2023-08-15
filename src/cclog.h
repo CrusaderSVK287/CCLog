@@ -155,11 +155,13 @@ void cclogger_reset_log_levels();
  *      format: "( ${DATE} ) ${TIME} : ${MSG}"
  *      result: "( 2023-14-8 ) 9:17:23 : log message specified in cclog"
  * List of build in variables:
+ *      MSG - The message specified by user
  *      FILE - File in which the log was called
  *      LINE - Line of code on which the log was called
  *      FUNCTION - Name of function in which the log was called
  *      DATE - Current date in YYYY-MM-DD format
  *      TIME - Current time in HH:MM:SS format
+ *      PID - pid of the running process
  *      YYYY - Current year
  *      MM - Current month (1 to 12)
  *      DD - Current day (1 to 31)

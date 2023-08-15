@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #define STR_EMPTY ""
 
@@ -18,6 +19,7 @@
 #define VAR_FUNC "FUNCTION"
 #define VAR_DATE "DATE"
 #define VAR_TIME "TIME"
+#define VAR_PID "PID"
 #define VAR_MSG "MSG"
 
 #define VAR_YEAR "YYYY"
@@ -91,6 +93,10 @@ static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t
         }
         if (!strcmp(var, VAR_LINE)) {
                 snprintf(var_buff, MSG_SIZE, "%d", opts->line);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_PID)) {
+                snprintf(var_buff, MSG_SIZE, "%d", getpid());
                 return var_buff;
         }
         if (!strcmp(var, VAR_FUNC)) {
