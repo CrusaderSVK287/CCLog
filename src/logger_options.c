@@ -6,7 +6,8 @@
 #include <errno.h>
 
 /* Log file option functions */
-static FILE *log_file;
+static FILE *log_file = NULL;
+static char *log_file_path = NULL;
 
 /* return the pointer to the file struct pointer */
 static FILE *get_log_file()
@@ -21,6 +22,8 @@ static int set_log_file(const char *path)
         if (!path)
                 return -1;
 
+        log_file_path = strdup(path);
+
         if (log_file)
                 fclose(log_file);
 
@@ -31,6 +34,18 @@ static int set_log_file(const char *path)
                 return -1;
         }
 
+        return 0;
+}
+
+static char *get_log_file_path() { return (char*)log_file_path ;}
+static int set_log_file_path(void *path) { return -1 ;}
+
+/* Log method */
+
+static int log_method = 0;
+static int *get_log_method() { return &log_method;}
+static int set_log_method(int value) {
+        log_method = value;
         return 0;
 }
 
@@ -83,6 +98,8 @@ void* get_opt(option_t opt)
         cclog_debug("called get_opt for option %d", opt);
         switch (opt) {
                 case OPTIONS_LOG_FILE: return get_log_file();
+                case OPTIONS_LOG_METHOD: return get_log_method();
+                case OPTIONS_LOG_FILE_PATH: return get_log_file_path();
                 case OPTIONS_DEF_MSG_FORMAT: return get_def_msg_string();
                 case OPTIONS_LAST_LOG_RET: return get_log_ret_value();
                 case OPTIONS_LAST_CALLBACK: return get_last_callback();
@@ -96,6 +113,8 @@ int set_opt(option_t opt, void *value)
         cclog_debug("called set_opt for option %d", opt);
         switch (opt) {
                 case OPTIONS_LOG_FILE: return set_log_file((const char *)value);
+                case OPTIONS_LOG_METHOD: return set_log_method(*(int*)value);
+                case OPTIONS_LOG_FILE_PATH: return set_log_file_path(value);
                 case OPTIONS_DEF_MSG_FORMAT: return set_def_msg_string((const char *)value);
                 case OPTIONS_LAST_LOG_RET: return set_log_ret_value(*(int*)value);
                 case OPTIONS_LAST_CALLBACK: return set_last_callback((cclog_cb)value);
@@ -110,4 +129,10 @@ void cleanup_opt()
                 fclose(log_file);
                 log_file = NULL;
         }
+
+        if (log_file_path) {
+                free(log_file_path);
+                log_file_path = NULL;
+        }
 }
+
