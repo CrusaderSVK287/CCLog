@@ -49,7 +49,7 @@ void generic_usage_test(const char **argv)
         printf("\n\nStarting generic usage test, no errors should pop up\n\n");
         cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH , (const char **)argv);
 
-        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], "{$DATE} ${MSG}");
+        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], "${DATE} ${MSG}");
         cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL, "String ${MSG}");
         cclogger_export_config_json(JSON_FILE_PATH);
         
