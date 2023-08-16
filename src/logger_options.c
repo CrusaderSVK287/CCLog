@@ -1,5 +1,6 @@
 #include "cclog.h"
 #include "options.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -99,6 +100,16 @@ static int set_last_callback(cclog_cb cb) {
         return 0;
 }
 
+/* loaded from json */
+
+static bool loaded_from_json = false;
+
+static bool *get_loaded_from_json() { return &loaded_from_json; }
+static int set_loaded_from_json(bool value) {
+        loaded_from_json = value;
+        return 0;
+}
+
 /*   option api functions    */
 
 /* Function returns the value of option specified in opt */
@@ -113,6 +124,7 @@ void* get_opt(option_t opt)
                 case OPTIONS_DEF_MSG_FORMAT: return get_def_msg_string();
                 case OPTIONS_LAST_LOG_RET: return get_log_ret_value();
                 case OPTIONS_LAST_CALLBACK: return get_last_callback();
+                case OPTIONS_LOADED_FROM_JSON: return get_loaded_from_json();
                 default: return NULL;
         }
 }
@@ -129,6 +141,7 @@ int set_opt(option_t opt, void *value)
                 case OPTIONS_DEF_MSG_FORMAT: return set_def_msg_string((const char *)value);
                 case OPTIONS_LAST_LOG_RET: return set_log_ret_value(*(int*)value);
                 case OPTIONS_LAST_CALLBACK: return set_last_callback((cclog_cb)value);
+                case OPTIONS_LOADED_FROM_JSON: return set_loaded_from_json(*(bool*)value);
                 default: return -1;
         }
 }

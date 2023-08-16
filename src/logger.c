@@ -650,6 +650,9 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
                 return rv;
         }
 
+        bool val = true;
+        set_opt(OPTIONS_LOADED_FROM_JSON, &val);
+        
         json_param_t *param = NULL;
 
         /* Getting the entire file into a json buffer */
@@ -672,6 +675,7 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
         /* Getting array of log levels */
         char *log_levels = json_get_array(json, "log_levels");
         if_failed(json_load_log_levels(cb_mappings, log_levels), error);
+
 
 
 exit:

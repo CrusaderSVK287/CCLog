@@ -1,6 +1,7 @@
 #include "cclog.h"
 #include "options.h"
 #include "logger.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -112,6 +113,8 @@ int cclogger_init(logging_type_t type, const char* path, const char **argv)
 
         int val = 1;
         set_opt(OPTIONS_LOGGER_INITIALISED, &val);
+        bool b = false;
+        set_opt(OPTIONS_LOADED_FROM_JSON, &b);
 
         return 0;
 error:

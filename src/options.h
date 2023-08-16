@@ -30,6 +30,7 @@ typedef enum option {
     OPTIONS_DEF_MSG_FORMAT,
     OPTIONS_LAST_LOG_RET,
     OPTIONS_LAST_CALLBACK,
+    OPTIONS_LOADED_FROM_JSON,
 } option_t;
 
 /**
