@@ -5,6 +5,7 @@
 
 /* convenience macros */
 #define if_failed(exp, label) {if (exp != 0) {goto label;}}
+#define if_null(exp, label) {if (exp == (void*)0) {goto label;}}
 
 /** 
  * Log callback function pointer typedef. Declare such function like this:
@@ -21,8 +22,12 @@ typedef int (*cclog_cb)(const char* msg, void* priv);
  * static cclog_callback_mapping_t cclog_cb_maps[] = {
  *       {"callback_test", callback_test},
  *       {"another_callback", func_ptr},
- *       {...}
+ *       {...},
+ *       {NULL, NULL}
  * };
+ *
+ * THE LAST ROW MUST BE NULL NULL (sentinel guard), OTHERWISE YOU RISK A 
+ *                          SEGMENTATION FAULT
  *
  * This structure array needs to be passed to cclog_import_config() function 
  * for this function to be able to generate log levels with callbacks.
@@ -196,6 +201,16 @@ int cclogger_recall_last_callback(void *priv);
  * This file is stored in json format.
  */
 int cclogger_export_config_json(const char *path);
+
+/**
+ * Function load a configuration of logger from json file provided in path. 
+ * Function also requires a table of callback mappings if one exists.
+ * If not, it can be specified as NULL.
+ * See cclog_callback_mapping_t struct for more information how to declare 
+ * sucj map.
+ * Be advised that this function erases the current configuration.
+ */
+int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mappings[]);
 
 #endif /* __CCLOG_H__ */
 

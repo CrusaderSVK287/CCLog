@@ -5,6 +5,8 @@
 #include "utils/llist.h"
 #include "utils/defines.h"
 #include "utils/utils.h"
+#include <bits/getopt_core.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -529,5 +531,154 @@ int cclogger_export_config_json(const char *path)
         json_free_buffer();
         fclose(file);
         return 0;
+}
+
+static cclog_callback_mapping_t *get_mapping_from_name(
+        cclog_callback_mapping_t map[],  const char *name)
+{
+        if (!name || !map)
+                return NULL;
+
+        /* Loop through all mappings until we find the one we need by name */
+        int i = 0;
+        while (map[i].func_ptr != NULL && map[i].func_name != NULL) {
+                if (!strcmp(name, map[i].func_name)) {
+                        return &map[i];
+                }
+
+                i++;
+        }
+
+        return NULL;
+}
+
+static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const char *json)
+{
+        if (!json)
+                return -1;
+
+        cclogger_reset_log_levels();
+
+        const char *object = NULL;
+        int index = 0;
+
+        bool log_to_tty, log_to_file;
+        cclog_tty_log_color_t color;
+        const char *msg_format;
+        const char *cb_map;
+
+        json_param_t *param = NULL;
+
+        /* This will loop through all objects in the array returned by json_get_array */
+        while ((object = json_get_object_from_array((char*)json, index)) != NULL) {
+                if (!strcmp(object, STR_EMPTY))
+                        break;
+
+                cclog_debug("JSON: loading log_level from object\n>>>%s<<<\n", object);
+
+                param = json_get_param(object, "log_to_tty");
+                if (!param || param->type != JSON_PARAM_BOOELAN) {
+                        cclog_error("JSON: Invalid value for log_to_tty");
+                        goto error;
+                }
+                log_to_tty = param->boolean;
+
+                param = json_get_param(object, "log_to_file");
+                if (!param || param->type != JSON_PARAM_BOOELAN) {
+                        cclog_error("JSON: Invalid value for log_to_file");
+                        goto error;
+                }
+                log_to_file = param->boolean;
+
+                param = json_get_param(object, "color");
+                if (!param || param->type != JSON_PARAM_NUMBER) {
+                        cclog_error("JSON: Invalid value for color");
+                        goto error;
+                }
+                color = param->number;
+
+                /**
+                 * Since we need the strings copied, we use strdup. 
+                 * This needs to be addressed because it causes a memory leak
+                 */
+                param = json_get_param(object, "msg_format");
+                if (param) {
+                        if (param->type != JSON_PARAM_STRING) {
+                                cclog_error("JSON: Invalid value for msg_format");
+                                goto error;
+                        }
+                        msg_format = strdup(param->string);         // TODO: find a solution to strdup
+                } else {
+                        msg_format = NULL;
+                }
+
+                /* Same story here as above */
+                param = json_get_param(object, "callback");
+                if (param) {
+                        if (param->type != JSON_PARAM_STRING) {
+                                cclog_error("JSON: Invalid value for callback");
+                                goto error;
+                        }
+                        cb_map = strdup(param->string);             // TODO: find a solution to strdup
+                } else {
+                        cb_map = NULL;
+                }
+
+                /* Add the level */
+                if_failed(cclogger_add_log_level(log_to_file, log_to_tty, color, 
+                                       get_mapping_from_name(cb_mappings, cb_map), 
+                                       msg_format), error);
+                /* increase the index of the json array object we want next */
+                index++;
+        }
+
+        return 0;
+error:
+        cclog_error("Failed to load log level on idex %d", index);
+        return -1;
+}
+
+int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mappings[])
+{
+        if (!path)
+                return -1;
+
+        int rv = -1;
+
+        if (*(int*)get_opt(OPTIONS_LOGGER_INITIALISED) == 0) {
+                cclog_error("Logger not initialised, use cclogger_init() first");
+                return rv;
+        }
+
+        json_param_t *param = NULL;
+
+        /* Getting the entire file into a json buffer */
+        if_failed(json_read_file(path), error);
+        const char *json = json_get_buffer();
+
+        /* Setting default string format */
+        param = json_get_param(json, "def_msg_format");
+        if (!param) {
+                cclog_error("Failed to retrieve default message from file");
+                goto error;
+        }
+
+        const char *def_msg_format_buff = strdup(param->string);    // TODO: Find solution for strdup
+        if (set_opt(OPTIONS_DEF_MSG_FORMAT, (void*)def_msg_format_buff) < 0) {
+                cclog_error("Failed to set default message format");
+                goto error;
+        }
+
+        /* Getting array of log levels */
+        char *log_levels = json_get_array(json, "log_levels");
+        if_failed(json_load_log_levels(cb_mappings, log_levels), error);
+
+
+exit:
+        json_free_buffer();
+        return rv;
+error:
+        cclog_error("JSON: Could not load config from %s", path);
+        goto exit;
 }
 

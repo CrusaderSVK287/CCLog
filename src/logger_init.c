@@ -110,6 +110,9 @@ int cclogger_init(logging_type_t type, const char* path, const char **argv)
                 goto error;
         }
 
+        int val = 1;
+        set_opt(OPTIONS_LOGGER_INITIALISED, &val);
+
         return 0;
 error:
         cclog_error("CCLogger failed to be initialised");
@@ -120,6 +123,9 @@ int cclogger_uninit()
 {
         cleanup_opt();
         cclogger_reset_log_levels();
+
+        int val = 0;
+        set_opt(OPTIONS_LOGGER_INITIALISED, &val);
         return 0;
 }
 
