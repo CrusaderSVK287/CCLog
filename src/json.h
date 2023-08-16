@@ -15,7 +15,7 @@ typedef struct json_param {
     union {
         int number;
         bool boolean;
-        const char *string;
+        char *string;
     };
 } json_param_t;
 

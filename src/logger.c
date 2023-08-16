@@ -332,10 +332,12 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
  
         if (callback) {
                 level->callback = callback->func_ptr;
-                level->cb_name = callback->func_name;
+                level->cb_name = strdup(callback->func_name);
         }
 
-        level->msg_format = msg_format;
+        if (msg_format) {
+                level->msg_format = strdup(msg_format);
+        }
 
         /**
          * If the log level list is no initialised, initialise it with the level,
@@ -358,13 +360,31 @@ error:
         return -1;
 }
 
+static int log_levels_free(void *data, void *priv)
+{
+        if (!data)
+                return 0;
+
+        log_level_t *level = (log_level_t*)data;
+
+        if (level->cb_name)
+                free((void*)level->cb_name);
+        if (level->msg_format)
+                free((void*)level->msg_format);
+
+        return 0;
+}
+
 void cclogger_reset_log_levels()
 {
+        if (!log_levels_list)
+                return;
+
+        llist_foreach(log_levels_list, log_levels_free, NULL);
+        
         /* If list exists, clean it and set its pointer to NULL */
-        if (log_levels_list) {
-                llist_clean(log_levels_list);
-                log_levels_list = NULL;
-        }
+        llist_clean(log_levels_list);
+        log_levels_list = NULL;
 }
 
 /**
@@ -564,8 +584,8 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
 
         bool log_to_tty, log_to_file;
         cclog_tty_log_color_t color;
-        const char *msg_format;
-        const char *cb_map;
+        char *msg_format = NULL;
+        char *cb_map = NULL;
 
         json_param_t *param = NULL;
 
@@ -628,12 +648,21 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
                 if_failed(cclogger_add_log_level(log_to_file, log_to_tty, color, 
                                        get_mapping_from_name(cb_mappings, cb_map), 
                                        msg_format), error);
+                
+                /* Free the buffers if they were allocated */
+                if (msg_format) free(msg_format);
+                if (cb_map) free(cb_map);
+
                 /* increase the index of the json array object we want next */
                 index++;
         }
 
         return 0;
 error:
+        /* In case something fails, free the buffers */
+        if (msg_format) free(msg_format);
+        if (cb_map) free(cb_map);
+
         cclog_error("Failed to load log level on idex %d", index);
         return -1;
 }
@@ -650,7 +679,7 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
                 return rv;
         }
 
-        bool val = true;
+        int val = 1;
         set_opt(OPTIONS_LOADED_FROM_JSON, &val);
         
         json_param_t *param = NULL;
@@ -666,17 +695,18 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
                 goto error;
         }
 
-        const char *def_msg_format_buff = strdup(param->string);    // TODO: Find solution for strdup
-        if (set_opt(OPTIONS_DEF_MSG_FORMAT, (void*)def_msg_format_buff) < 0) {
+        if (set_opt(OPTIONS_DEF_MSG_FORMAT, param->string) < 0) {
                 cclog_error("Failed to set default message format");
                 goto error;
         }
 
         /* Getting array of log levels */
         char *log_levels = json_get_array(json, "log_levels");
+        
+        if_null(log_levels, error);
         if_failed(json_load_log_levels(cb_mappings, log_levels), error);
-
-
+        
+        free(log_levels);
 
 exit:
         json_free_buffer();

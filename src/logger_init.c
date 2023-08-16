@@ -113,8 +113,8 @@ int cclogger_init(logging_type_t type, const char* path, const char **argv)
 
         int val = 1;
         set_opt(OPTIONS_LOGGER_INITIALISED, &val);
-        bool b = false;
-        set_opt(OPTIONS_LOADED_FROM_JSON, &b);
+        val = 0;
+        set_opt(OPTIONS_LOADED_FROM_JSON, &val);
 
         return 0;
 error:
@@ -124,9 +124,9 @@ error:
 
 int cclogger_uninit()
 {
-        cleanup_opt();
         cclogger_reset_log_levels();
 
+        cleanup_opt();
         int val = 0;
         set_opt(OPTIONS_LOGGER_INITIALISED, &val);
         return 0;

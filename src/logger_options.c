@@ -60,7 +60,7 @@ static int set_log_method(int value) {
 }
 
 /* Default message format string */
-static char *def_msg_string;
+static char *def_msg_string = NULL;
 
 static char *get_def_msg_string()
 {
@@ -72,10 +72,15 @@ static int set_def_msg_string(const char *value)
         if (!value)
                 return -1;
 
-        def_msg_string = (char *)value;
+        if (def_msg_string) {
+                free(def_msg_string);
+                def_msg_string = NULL;
+        }
+
+        def_msg_string = strdup(value);
         cclog_debug("Setting new default msg_string: %s", value);
 
-        return 0;
+        return (def_msg_string)? 0 : -1;
 }
 
 /* 
@@ -102,10 +107,10 @@ static int set_last_callback(cclog_cb cb) {
 
 /* loaded from json */
 
-static bool loaded_from_json = false;
+static int loaded_from_json = 0;
 
-static bool *get_loaded_from_json() { return &loaded_from_json; }
-static int set_loaded_from_json(bool value) {
+static int *get_loaded_from_json() { return &loaded_from_json; }
+static int set_loaded_from_json(int value) {
         loaded_from_json = value;
         return 0;
 }
@@ -141,7 +146,7 @@ int set_opt(option_t opt, void *value)
                 case OPTIONS_DEF_MSG_FORMAT: return set_def_msg_string((const char *)value);
                 case OPTIONS_LAST_LOG_RET: return set_log_ret_value(*(int*)value);
                 case OPTIONS_LAST_CALLBACK: return set_last_callback((cclog_cb)value);
-                case OPTIONS_LOADED_FROM_JSON: return set_loaded_from_json(*(bool*)value);
+                case OPTIONS_LOADED_FROM_JSON: return set_loaded_from_json(*(int*)value);
                 default: return -1;
         }
 }
@@ -149,6 +154,7 @@ int set_opt(option_t opt, void *value)
 /* Function cleans up the options */
 void cleanup_opt()
 {
+        cclog_debug("Cleaning options");
         if (log_file) {
                 fclose(log_file);
                 log_file = NULL;
@@ -157,6 +163,11 @@ void cleanup_opt()
         if (log_file_path) {
                 free(log_file_path);
                 log_file_path = NULL;
+        }
+
+        if (def_msg_string) {
+                free(def_msg_string);
+                def_msg_string = NULL;
         }
 }
 
