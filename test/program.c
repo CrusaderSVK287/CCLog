@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #define LOG_FILE_PATH  "/home/lukas/Repositories/CCLog/TestLogFile"
+#define JSON_FILE_PATH "/home/lukas/TestExort.json"
 
 int callback_test(const char *msg, void *priv)
 {
@@ -50,7 +51,7 @@ void generic_usage_test(const char **argv)
 
         cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], "{$DATE} ${MSG}");
         cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL, "String ${MSG}");
-        cclogger_export_config("/home/lukas/TestExort.json");
+        cclogger_export_config_json(JSON_FILE_PATH);
         
         cclog(0, NULL, "Testing message without format");
         printf("Recalling callback, rv should be -1. RV = %d\n", cclogger_recall_last_callback(&a));
@@ -98,5 +99,7 @@ void program(const char **argv)
         no_init();
         no_levels(argv);
         default_message_set_test(argv);
+
+        // cclogger_json_load(JSON_FILE_PATH); 
 }
 
