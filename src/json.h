@@ -25,6 +25,12 @@ bool json_is_valid(const char *json);
 /* Function returns the pointer to the json buffer */
 const char *json_get_buffer();
 
+/* Function returns json buffer used to read from file */
+const char *json_get_file_buffer();
+
+/* Frees json file buffer, needs to be used after calling json_read_file */
+void json_free_file_buffer();
+
 /**
  * Function initialises json buffer into which the json string will be built
  * The buffer is cleared of all previous data if any are present
@@ -33,12 +39,10 @@ const char *json_get_buffer();
 int json_init_buffer();
 
 /**
- * Erases and frees json buffer from memory. This function is not neccessary
- * to be called, since the buffer is allocated only once, but it should in case
- * the memory is needed elsewhere
- * @return 0 on success, -1 on failure (cannot free buffer)
+ * Erases contents of json buffer. Needs to be called before new buffer is 
+ * initialised using json_start_buffer
  */
-int json_free_buffer();
+void json_buffer_clear();
 
 /**
  * Following functions all do the same thing: they manipulate the buffer itself.
@@ -80,9 +84,8 @@ int json_end_array();
 int json_end_buffer();
 
 /**
- * Function reads a file into a buffer. Warning: this is the same buffer used 
- * for building of json string so make sure you have eighter stored it or no 
- * longer need it! 
+ * Function reads a file into a file buffer. This is not the same buffer as the 
+ * one for building the string, retreive using json_get_file_buffer()
  */
 int json_read_file(const char *path);
 

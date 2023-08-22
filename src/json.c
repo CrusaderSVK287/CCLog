@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <sys/mman.h>
 
 #define JSON_BUFF_SIZE 10000
 #define BUFF_SIZE 1000
@@ -59,7 +60,7 @@ static int indent_level = 0;
 static bool in_array = false;
 
 /* clears buffer */
-static void json_buffer_clear()
+void json_buffer_clear()
 {
         memset(json_buffer, 0, JSON_BUFF_SIZE);
         json_buffer_lenght = 0;
@@ -75,22 +76,9 @@ const char *json_get_buffer()
 int json_init_buffer()
 {
         cclog_debug("JSON: init buffer");
-        json_buffer = calloc(JSON_BUFF_SIZE, sizeof(char));
+        json_buffer = mmap(NULL, JSON_BUFF_SIZE, PROT_READ | PROT_WRITE, 
+                           MAP_SHARED | MAP_ANONYMOUS, -1, 0);
         return (json_buffer) ? 0 : -1;
-}
-
-int json_free_buffer()
-{
-        cclog_debug("JSON: free buffer");
-        if (!json_buffer)
-                return -1;
-
-        free(json_buffer);
-        json_buffer = NULL;
-        json_buffer_lenght = 0;
-        indent_level = 0; 
-
-        return 0;
 }
 
 /* Writes string to buffer with prepended whitespaces based on indent level */
@@ -230,6 +218,22 @@ int json_end_buffer()
  * ############################################################################
  */
 
+static char *json_file_buffer = NULL;
+
+const char *json_get_file_buffer()
+{
+        cclog_debug("Requested json file buffer");
+        return json_file_buffer;
+}
+
+void json_free_file_buffer()
+{
+        if (json_file_buffer) {
+                free(json_file_buffer);
+                json_file_buffer = NULL;
+        }
+}
+
 int json_read_file(const char *path)
 {
         if (!path)
@@ -245,9 +249,17 @@ int json_read_file(const char *path)
         }
 
         /* Clear buffer if it exists, initialise it otherwise */
-        (json_buffer) ? json_buffer_clear() : json_init_buffer();
+        if (json_file_buffer) {
+                memset(json_file_buffer, 0, JSON_BUFF_SIZE);
+        } else {
+                json_file_buffer = calloc(1, JSON_BUFF_SIZE);
+                if (!json_file_buffer) {
+                        cclog_error("Could not allocate space for json file buffer");
+                        goto error;
+                }
+        }
 
-        if (read(fd, json_buffer, JSON_BUFF_SIZE) < 0) {
+        if (read(fd, json_file_buffer, JSON_BUFF_SIZE) < 0) {
                 cclog_error("JSON: Error reading file %s", path);
                 rv = -1;
         }
