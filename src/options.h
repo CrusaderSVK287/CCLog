@@ -59,5 +59,8 @@ int set_opt(option_t opt, void *value);
  */
 void cleanup_opt();
 
+int is_initialised();
+int is_server_enabled();
+
 #endif // !__OPTIONS_H__
 

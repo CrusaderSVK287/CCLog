@@ -1,5 +1,7 @@
 #include "cclog.h"
 #include "options.h"
+#include "json.h"
+#include "logger.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,20 +164,27 @@ void* get_opt(option_t opt)
 int set_opt(option_t opt, void *value)
 {
         cclog_debug("called set_opt for option %d", opt);
+        int ret = 0;
+
         switch (opt) {
-                case OPTIONS_LOGGER_INITIALISED: return set_logger_initialised(*(int*)value);
-                case OPTIONS_LOG_FILE: return set_log_file((const char *)value);
-                case OPTIONS_LOG_METHOD: return set_log_method(*(int*)value);
-                case OPTIONS_LOG_FILE_PATH: return set_log_file_path(value);
-                case OPTIONS_DEF_MSG_FORMAT: return set_def_msg_string((const char *)value);
-                case OPTIONS_LAST_LOG_RET: return set_log_ret_value(*(int*)value);
-                case OPTIONS_LAST_CALLBACK: return set_last_callback((cclog_cb)value);
-                case OPTIONS_LOADED_FROM_JSON: return set_loaded_from_json(*(int*)value);
-                case OPTIONS_SERVER_ENABLED: return set_server_enabled(*(int*)value);
-                case OPTIONS_SERVER_PORT: return set_server_port(*(int*)value);
-                case OPTIONS_SERVER_PID: return set_server_pid(*(int*)value);
+                case OPTIONS_LOGGER_INITIALISED: ret = set_logger_initialised(*(int*)value); break;
+                case OPTIONS_LOG_FILE: ret = set_log_file((const char *)value); break;
+                case OPTIONS_LOG_METHOD: ret = set_log_method(*(int*)value); break;
+                case OPTIONS_LOG_FILE_PATH: ret = set_log_file_path(value); break;
+                case OPTIONS_DEF_MSG_FORMAT: ret = set_def_msg_string((const char *)value); break;
+                case OPTIONS_LAST_LOG_RET: ret = set_log_ret_value(*(int*)value); break;
+                case OPTIONS_LAST_CALLBACK: ret = set_last_callback((cclog_cb)value); break;
+                case OPTIONS_LOADED_FROM_JSON: ret = set_loaded_from_json(*(int*)value); break;
+                case OPTIONS_SERVER_ENABLED: ret = set_server_enabled(*(int*)value); break;
+                case OPTIONS_SERVER_PORT: ret = set_server_port(*(int*)value); break;
+                case OPTIONS_SERVER_PID: ret = set_server_pid(*(int*)value); break;
                 default: return -1;
         }
+
+        if (logger_initialised)
+                json_load_current_config();
+
+        return ret;
 }
 
 /* Function cleans up the options */
@@ -197,4 +206,7 @@ void cleanup_opt()
                 def_msg_string = NULL;
         }
 }
+
+int is_initialised() {return logger_initialised;}
+int is_server_enabled() {return server_enabled;}
 
