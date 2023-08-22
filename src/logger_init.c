@@ -1,6 +1,7 @@
 #include "cclog.h"
 #include "options.h"
 #include "logger.h"
+#include "json.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +88,8 @@ error:
 
 int cclogger_init(logging_type_t type, const char* path, const char **argv)
 {
+        json_init_buffer();
+        
         /* Add default log levels */
         if_failed(add_default_log_levels(), error);
 

@@ -2,10 +2,13 @@
 #include "cclog.h"
 #include "json.h"
 #include "options.h"
+#include "server.h"
 #include "utils/llist.h"
 #include "utils/defines.h"
 #include "utils/utils.h"
 #include <bits/getopt_core.h>
+#include <cclog.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -354,6 +357,9 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
                 if_failed(llist_add(log_levels_list, level), error);
         }
 
+        if (*(int*)get_opt(OPTIONS_LOGGER_INITIALISED) == 1)
+                json_load_current_config();
+
         return 0;
 error:
         cclog_error("Failed to add log level to the list of log levels");
@@ -518,19 +524,10 @@ int export_log_level(void *data, void *priv)
         return 0;
 }
 
-int cclogger_export_config_json(const char *path)
+void json_load_current_config()
 {
-        if (!path)
-                return -1;
-
-        FILE *file = fopen(path ,"w");
-        if (!file) {
-                return -1;
-        }
-
-        char buff[BUFSIZ] = "";
-
-        json_init_buffer();
+        char buff[BUFSIZ];
+        json_buffer_clear();
 
         json_start_buffer();
         sprintf(buff, "\"%s\"", (const char *)get_opt(OPTIONS_LOG_FILE_PATH));
@@ -545,10 +542,22 @@ int cclogger_export_config_json(const char *path)
         json_end_array();
         
         json_end_buffer();
+}
+
+int cclogger_export_config_json(const char *path)
+{
+        if (!path)
+                return -1;
+
+        FILE *file = fopen(path ,"w");
+        if (!file) {
+                return -1;
+        }
+
+        json_load_current_config();
 
         fprintf(file, "%s", json_get_buffer());
 
-        json_free_buffer();
         fclose(file);
         return 0;
 }
@@ -686,7 +695,7 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
 
         /* Getting the entire file into a json buffer */
         if_failed(json_read_file(path), error);
-        const char *json = json_get_buffer();
+        const char *json = json_get_file_buffer();
 
         /* Setting default string format */
         param = json_get_param(json, "def_msg_format");
@@ -709,10 +718,66 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
         free(log_levels);
 
 exit:
-        json_free_buffer();
+        json_free_file_buffer();
         return rv;
 error:
         cclog_error("JSON: Could not load config from %s", path);
         goto exit;
+}
+
+int cclogger_server_start(int port)
+{
+        if (!is_initialised()) {
+                cclog_error("logger is not initialised, did you use cclogger_init()?");
+                return -1;
+        }
+
+        if (port < 0) {
+                cclog_error("Bad port number: %d", port);
+                return -1;
+        }
+
+        int sock_fd = server_create_socket(port);
+        if (sock_fd < 0) {
+                goto error;
+        }
+
+        int server_pid = server_create_process(sock_fd);
+        if (server_pid < 0) {
+                goto error;
+        }
+
+        int enabled = 1;
+        if_failed(set_opt(OPTIONS_SERVER_ENABLED, &enabled), error);
+        if_failed(set_opt(OPTIONS_SERVER_PID, &server_pid), error);
+        if_failed(set_opt(OPTIONS_SERVER_PORT, &port), error);
+
+        return server_pid;
+error:
+        cclog_error("Failed to initialise server on port %d", port);
+        return -1;
+}
+
+int cclogger_server_stop()
+{
+        if (!is_server_enabled() || !is_initialised()) {
+                cclog_error("Server is not initialised");
+                return -1;
+        }
+
+        int pid = *(int*)get_opt(OPTIONS_SERVER_PID);
+        cclog_debug("Sending sigint to main server process with pid %d", pid);
+
+        kill(pid, SIGINT);
+        return 0;
+}
+
+int cclogger_server_pid()
+{
+        if (!is_server_enabled() || !is_initialised()) {
+                cclog_error("Server is not initialised");
+                return -1;
+        }
+        return *(int*)get_opt(OPTIONS_SERVER_PID);
 }
 

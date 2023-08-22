@@ -21,4 +21,10 @@ typedef struct log_level {
     const char *msg_format;
 } log_level_t;
 
+/**
+ * Helper function. Loads current config in json format to json buffer. 
+ * Buffer must be first inited and than freed 
+ */
+void json_load_current_config();
+
 #endif // !__CCLOG_LOGGER_H_add_default_log_levels
