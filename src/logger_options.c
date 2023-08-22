@@ -115,6 +115,27 @@ static int set_loaded_from_json(int value) {
         return 0;
 }
 
+/* Server related options */
+static int server_enabled = 0;
+static int server_port = 0;
+static int server_pid = 0;
+
+static int *get_server_enabled() { return &server_enabled; }
+static int set_server_enabled(int value) {
+        server_enabled = value;
+        return 0;
+}
+static int *get_server_port() { return &server_port; }
+static int set_server_port(int value) {
+        server_port = value;
+        return 0;
+}
+static int *get_server_pid() { return &server_pid; }
+static int set_server_pid(int value) {
+        server_pid = value;
+        return 0;
+}
+
 /*   option api functions    */
 
 /* Function returns the value of option specified in opt */
@@ -130,6 +151,9 @@ void* get_opt(option_t opt)
                 case OPTIONS_LAST_LOG_RET: return get_log_ret_value();
                 case OPTIONS_LAST_CALLBACK: return get_last_callback();
                 case OPTIONS_LOADED_FROM_JSON: return get_loaded_from_json();
+                case OPTIONS_SERVER_ENABLED: return get_server_enabled();
+                case OPTIONS_SERVER_PORT: return get_server_port();
+                case OPTIONS_SERVER_PID: return get_server_pid();
                 default: return NULL;
         }
 }
@@ -147,6 +171,9 @@ int set_opt(option_t opt, void *value)
                 case OPTIONS_LAST_LOG_RET: return set_log_ret_value(*(int*)value);
                 case OPTIONS_LAST_CALLBACK: return set_last_callback((cclog_cb)value);
                 case OPTIONS_LOADED_FROM_JSON: return set_loaded_from_json(*(int*)value);
+                case OPTIONS_SERVER_ENABLED: return set_server_enabled(*(int*)value);
+                case OPTIONS_SERVER_PORT: return set_server_port(*(int*)value);
+                case OPTIONS_SERVER_PID: return set_server_pid(*(int*)value);
                 default: return -1;
         }
 }
