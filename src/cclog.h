@@ -212,5 +212,27 @@ int cclogger_export_config_json(const char *path);
  */
 int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mappings[]);
 
+/**
+ * Function starts a http server on the given port. This server can provide 
+ * current configuration and currently opened log file.
+ * Mappings:
+ *      /       - index page
+ *      /config - json containing configuration 
+ *      /log    - currently opened log file
+ * @port: number of port for socket to be binded to 
+ * @return: server PID on success, -1 on error
+ */
+int cclogger_server_start(int port);
+
+/**
+ * Stops the http server if it is started
+ */
+int cclogger_server_stop();
+
+/**
+ * Returns the PID of the server process 
+ */
+int cclogger_server_pid();
+
 #endif /* __CCLOG_H__ */
 
