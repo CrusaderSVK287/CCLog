@@ -802,6 +802,10 @@ int cclogger_server_stop()
         cclog_debug("Sending sigint to main server process with pid %d", pid);
 
         kill(pid, SIGINT);
+
+        int val = 0;
+        set_opt(OPTIONS_SERVER_ENABLED, &val);
+
         return 0;
 }
 
