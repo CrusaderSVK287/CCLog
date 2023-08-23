@@ -26,25 +26,22 @@ int main(int argc, char **argv)
         // json();
         // cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH,(const char**) argv);
 
-        cclogger_init(LOGGING_SINGLE_FILE , LOG_FILE_PATH,(const char**) argv);
+        cclogger_init(LOGGING_SINGLE_FILE , LOG_FILE_PATH, "Test_program");
 
         cclogger_load_config_json(JSON_FILE_PATH, maps);
         // cclogger_server_start(8000);
 
-        cclog(3, NULL, "Message test");
+
 
         for (int i = 0; i < 15; i ++) {
                 printf("%d\n", i + 1);
                 sleep(1);
         }
-
         // cclogger_export_config_json("/home/lukas/CompareExport.json");
-
-        cclogger_server_stop();
-
+        // cclogger_server_stop();
         cclogger_uninit();
 
-        puts("End of tests");
+        // puts("End of tests");
 
         return 0;
 }

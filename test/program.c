@@ -22,7 +22,7 @@ static void no_levels(const char **argv)
 {
         printf("\n\nStarting no levels test reseting the log levels, 2 errors expected\n\n");
 
-        cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH, argv);
+        cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH, "test");
 
         cclogger_reset_log_levels();
 
@@ -47,7 +47,7 @@ void generic_usage_test(const char **argv)
 {
         int a = 18;
         printf("\n\nStarting generic usage test, no errors should pop up\n\n");
-        cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH , (const char **)argv);
+        cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH , "test");
 
         cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], "${DATE} ${MSG}");
         cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL, "String ${MSG}");
@@ -70,7 +70,7 @@ void generic_usage_test(const char **argv)
 void default_message_set_test(const char **argv)
 {
         printf("\n\nStarting %s \n\n", __FUNCTION__);
-        cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH, (const char **)argv);
+        cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH, "test");
 
         cclogger_add_log_level(false, true, CCLOG_TTY_CLR_DEF, NULL, "Override msg format ${MSG}");
 
