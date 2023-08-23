@@ -540,6 +540,13 @@ void json_load_current_config()
         json_add_array("log_levels");
         llist_foreach(log_levels_list, export_log_level, NULL);
         json_end_array();
+
+        if (is_server_enabled()) {
+                json_add_object("server");
+                sprintf(buff, "%d", *(int*)get_opt(OPTIONS_SERVER_PORT));
+                json_add_parameter("port", buff);
+                json_end_object();
+        }
         
         json_end_buffer();
 }
@@ -716,6 +723,21 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
         if_failed(json_load_log_levels(cb_mappings, log_levels), error);
         
         free(log_levels);
+
+        /* Setting up server */
+        char *server = json_get_object(json, "server");
+        if (server) {
+                param = json_get_param(server, "port");
+                if (!param || param->type != JSON_PARAM_NUMBER) {
+                        cclog_error("Failed to initilise server");
+                        goto exit;
+                }
+                free(server);
+
+                if (cclogger_server_start(param->number) < 0) {
+                        goto error;
+                }
+        }
 
 exit:
         json_free_file_buffer();
