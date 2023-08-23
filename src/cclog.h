@@ -4,18 +4,18 @@
 #include <stdbool.h>
 
 /* convenience macros */
-#define if_failed(exp, label) {if (exp != 0) {goto label;}}
-#define if_null(exp, label) {if (exp == (void*)0) {goto label;}}
+#define if_failed(val, label) {if (val != 0) {goto label;}}
+#define if_null(val, label) {if (val == (void*)0) {goto label;}}
 
-#define if_failed_log(exp, label, log_level, priv, msg, ...) {\
-    if (exp != 0) {\
+#define if_failed_log(val, label, log_level, priv, msg, ...) {\
+    if (val != 0) {\
         cclog(log_level, priv, msg, ## __VA_ARGS__);\
         goto label;\
     }\
 }
 
-#define if_null_log(exp, label, log_level, priv, msg, ...) {\
-    if (exp == (void*)0) {\
+#define if_null_log(val, label, log_level, priv, msg, ...) {\
+    if (val == (void*)0) {\
         cclog(log_level, priv, msg, ## __VA_ARGS__);\
         goto label;\
     }\
@@ -181,6 +181,8 @@ void cclogger_reset_log_levels();
  *      DATE - Current date in YYYY-MM-DD format
  *      TIME - Current time in HH:MM:SS format
  *      PID - pid of the running process
+ *      ERRNO - error number as a digit
+ *      ERMSG - error message indicated by errno, got from strerror()
  *      YYYY - Current year
  *      MM - Current month (1 to 12)
  *      DD - Current day (1 to 31)

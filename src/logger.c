@@ -16,6 +16,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define STR_EMPTY ""
 
@@ -26,6 +27,8 @@
 #define VAR_TIME "TIME"
 #define VAR_PID "PID"
 #define VAR_MSG "MSG"
+#define VAR_ERRNO "ERRNO"
+#define VAR_ERMSG "ERMSG"
 
 #define VAR_YEAR "YYYY"
 #define VAR_MONTH "MM"
@@ -119,6 +122,14 @@ static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t
                         timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
                 return var_buff;
         }
+        if (!strcmp(var, VAR_ERRNO)) {
+                snprintf(var_buff, MSG_SIZE, "%d", errno);
+                return var_buff;
+        }
+        if (!strcmp(var, VAR_ERMSG)) {
+                return strerror(errno);
+        }
+
         if (!strcmp(var, VAR_YEAR)) {
                 snprintf(var_buff, MSG_SIZE, "%d", timeinfo->tm_year + 1900);
                 return var_buff;
