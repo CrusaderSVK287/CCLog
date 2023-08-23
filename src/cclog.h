@@ -86,9 +86,21 @@ typedef enum logging_type {
  * Function initializes logger by opening the required log file.
  * This function must be called before any other functions are used.
  * @type: Type of logging. Single/Multi file. See logging_type enum
+ * @path: path to the file that is going to be used as a log file.
+ *      Dont append ".log" at the end of path, it is done automatically
+ *      Lets assume path is example/path/filename
+ *      If logging type is single file:
+ *          file will be opened as example/path/filename.log
+ *      If logging type is multi files:
+ *          file will be opened as example/path/filename-[YYYY-MM-DD_HH:MM:SS].log
+ * @proc_name: Name of the process. If path is not specified (is null), 
+ *      the log file will be created in home directory with the proc_name as filename. 
+ *      This is meant to be a failsafe if path is null but can be used anyway.
  * @return: 0 on success, -1 on failure
+ *
+ * Note: Eight path or proc_name MUST not be null
  */
-int cclogger_init(logging_type_t type, const char *path, const char **argv);
+int cclogger_init(logging_type_t type, const char *path, const char *proc_name);
 
 /**
  * Function deinits the logger, put this at the end of your program

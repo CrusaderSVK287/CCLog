@@ -12,7 +12,7 @@
 #define DEFAULT_MSG_FORMAT "[${DATE}_${TIME}]${FILE}:${LINE}:${MSG}"
 
 /* handler function for one file logging type */
-static int open_single_file(const char *path, const char **argv)
+static int open_single_file(const char *path, const char *proc_name)
 {
         char buff[BUFSIZ];
         char *home_path;
@@ -20,7 +20,7 @@ static int open_single_file(const char *path, const char **argv)
         /* If path is not specified, create a default log file at home */
         if (!path) {
                 home_path = getenv("HOME");
-                sprintf(buff, "%s/%s.log", home_path, strrchr(argv[0], '/')+1);
+                sprintf(buff, "%s/%s.log", home_path, proc_name);
         } else { 
                 /* If path is specified, open the log file at the path */
                 sprintf(buff, "%s.log", path);
@@ -37,7 +37,7 @@ error:
 }
 
 /* handler funcion for multiple files logging type*/
-static int open_multiple_file_mode(const char *path, const char **argv)
+static int open_multiple_file_mode(const char *path, const char *proc_name)
 {
         char buff[BUFSIZ];
         char *home_path;
@@ -54,7 +54,7 @@ static int open_multiple_file_mode(const char *path, const char **argv)
         /* If path is not specified, create a default log file at home */
         if (!path) {
                 home_path = getenv("HOME");
-                sprintf(buff, "%s/%s-%s.log", home_path, strrchr(argv[0], '/')+1, time_buf);
+                sprintf(buff, "%s/%s-%s.log", home_path, proc_name, time_buf);
         } else {
                 /* If it is, create a file in the path*/
                 sprintf(buff, "%s-%s.log", path, time_buf);
@@ -86,8 +86,13 @@ error:
 
 /* cclogger API functions */
 
-int cclogger_init(logging_type_t type, const char* path, const char **argv)
+int cclogger_init(logging_type_t type, const char* path, const char *proc_name)
 {
+        if (!path && !proc_name) {
+                cclog_error("FATAL: eighter path or proc_name MUST be specified!");
+                goto error;
+        }
+
         json_init_buffer();
         
         /* Add default log levels */
@@ -98,10 +103,10 @@ int cclogger_init(logging_type_t type, const char* path, const char **argv)
 
         /* If all other init functions passed, open/crete a log file */
         if (type == LOGGING_SINGLE_FILE) {
-                open_single_file(path, argv);
+                open_single_file(path, proc_name);
         }
         else if (type == LOGGING_MULTIPLE_FILES) {
-                open_multiple_file_mode(path, argv);
+                open_multiple_file_mode(path, proc_name);
         }
         else {
                 cclog_error("Unknown logging type specified");
