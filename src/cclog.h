@@ -7,6 +7,20 @@
 #define if_failed(exp, label) {if (exp != 0) {goto label;}}
 #define if_null(exp, label) {if (exp == (void*)0) {goto label;}}
 
+#define if_failed_log(exp, label, log_level, priv, msg, ...) {\
+    if (exp != 0) {\
+        cclog(log_level, priv, msg, ## __VA_ARGS__);\
+        goto label;\
+    }\
+}
+
+#define if_null_log(exp, label, log_level, priv, msg, ...) {\
+    if (exp == (void*)0) {\
+        cclog(log_level, priv, msg, ## __VA_ARGS__);\
+        goto label;\
+    }\
+}
+
 /** 
  * Log callback function pointer typedef. Declare such function like this:
  * int name_of_cb_func(const char* msg, void *priv)
