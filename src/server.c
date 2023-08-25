@@ -47,6 +47,13 @@ typedef struct {
         server_mapping_data_fetch_t func;
 } server_page_mapping_t;
 
+static void cleanup_server_process()
+{
+        json_free_file_buffer();
+        cclogger_reset_log_levels();
+        cleanup_opt();
+}
+
 int server_create_socket(int port)
 {
         if (port < 0)
@@ -367,9 +374,12 @@ static int server_loop(int fd)
 
                 /* Child */
 
+                /* Close parent socket */
                 close(fd);
                 rv = server_serve(client_fd);
+                
                 close(client_fd);
+                cleanup_server_process();
 
                 exit(rv);
         }
@@ -391,6 +401,7 @@ static void main_sig_int_handler(int num) {
  */
 static int server_process_main(int fd)
 {
+        int rv = -1;
         server_continue = 1;
         
         if (signal(SIGCHLD, SIG_IGN) == SIG_ERR) {
@@ -405,9 +416,11 @@ static int server_process_main(int fd)
 
         if_failed(server_loop(fd), error);
 
-        return 0;
+        rv = 0;
 error:
-        return -1;
+        /* Free memory allocated by the server process */
+        cleanup_server_process();
+        return rv;
 }
 
 int server_create_process(int fd)
