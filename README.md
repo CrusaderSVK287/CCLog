@@ -95,7 +95,10 @@ There are several macros provided for convenience
 * if_failed(val, label) - if val is other than 0, jump to the label
 * if_null(val, label) - if val is null, jump to the label
 * if_failed_log(val, label, log_level, priv, msg, ...) - if val is other than 0, make a log and jump to the label
-* if_failed_log(val, label, log_level, priv, msg, ...) - if val is null, make a log and jump to the label
+* if_null_log(val, label, log_level, priv, msg, ...) - if val is null, make a log and jump to the label
+
+if_failed macros have a positive and negative variants which fire if the val is eighter positive or negative but not zero.\
+These variants have eighter p or n at the end. Example: `if_failed_logp` will log and jump to label if value is greater than 0
 ***
 ## Example
 Example for a simple program using cclog library
