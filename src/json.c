@@ -357,8 +357,10 @@ static char *json_get_nested_structure(const char *json, const char *key,
         char format_buff[BUFSIZ];
         int ret = sprintf(format_buff, "\"%s\": %s", key, start_symbol);
         char *offset = strstr(json, format_buff);
-        if (!offset)
+        if (!offset) {
+                free(buff);
                 return NULL;
+        }
         
         /* This is to skip the "structure_name": 
          * part BUT keep the starting symbol 
