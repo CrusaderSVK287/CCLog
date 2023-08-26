@@ -30,7 +30,7 @@ int cclogger_server_stop();
 You can run an example server by executing `make` and then `./server`. It will run for one minute or until you send interrupt signal to it (ctrl + c). During its uptime you can visit the page on http://localhost:8080
 
 ## Caveat
-This server is more of a bonus feature that came into mi mind at the end of developing the main library, as such there are some bugs that need to be taken into account.\
+This server is more of a bonus feature that came into my mind at the end of developing the main library, as such there are some bugs that need to be taken into account.\
 First, since the log file is opened at all times and the server tries to open it again, there wont be any new logs from the current session, just the previous ones. 
 This also means that it is basically not working for multiple file logging method, so if you want to use it, use the single file method.\
 Secondly, since this is a forked server, it creates a lot of child processes and thus some memory leaks can occur.
