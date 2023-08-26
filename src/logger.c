@@ -7,7 +7,6 @@
 #include "utils/defines.h"
 #include "utils/utils.h"
 #include <bits/getopt_core.h>
-#include <cclog.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
