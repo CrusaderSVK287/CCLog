@@ -1,6 +1,7 @@
 #ifndef __CCLOG_MACROS_H__
 #define __CCLOG_MACROS_H__
 
+#define __CCLOG_MACROS_VERSION__ "v1.0.0"
 /**
  * Macros for conditional jumping if expression evaluates to true
  */

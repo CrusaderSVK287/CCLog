@@ -97,8 +97,14 @@ There are several macros provided for convenience
 * if_failed_log(val, label, log_level, priv, msg, ...) - if val is other than 0, make a log and jump to the label
 * if_null_log(val, label, log_level, priv, msg, ...) - if val is null, make a log and jump to the label
 
+To use these macros you need to include this header file
+```c
+#include <cclog_macros.h>
+```
+
 if_failed macros have a positive and negative variants which fire if the val is eighter positive or negative but not zero.\
-These variants have eighter p or n at the end. Example: `if_failed_logp` will log and jump to label if value is greater than 0
+These variants have eighter p or n at the end. Example: `if_failed_log_p` will log and jump to label if value is greater than 0.
+There are way more macros than this. Look inside documentation or src/cclog_macros.h file
 ***
 ## Example
 Example for a simple program using cclog library
@@ -107,29 +113,32 @@ Example for a simple program using cclog library
 
 #include <stdio.h>
 #include <cclog.h>
+#include <cclog_macros.h>
 
 int main()
 {
-	/* 
-	 * Initialise the logger.
-	 * We will be using a single file called my_log_file
-	 * We dont need to specify proc_name since we are sure
-	 * path isnt NULL
-	 */
-	cclogger_init(LOGGING_SINGLE_FILE, "./my_log_file", NULL);
+    /* 
+     * Initialise the logger.
+     * We will be using a single file called my_log_file
+     * We dont need to specify proc_name since we are sure
+     * path isnt NULL
+     */
+    cclogger_init(LOGGING_SINGLE_FILE, "./my_log_file", NULL);
 	
-	/* We write a message to the file only */
-	cclog(CCLOG_LEVEL_MSG, NULL, "Lets do some logging");
+    /* We write a message to the file only */
+    cclog(CCLOG_LEVEL_MSG, NULL, "Lets do some logging");
 	
-	/* We write a message both to file and to terminal */
-	if (2 + 2 != 10) {
-		cclog(CCLOG_LEVEL_ERR, NULL, "Error, bad result");
-	}
+    /* We write a message both to file and to terminal */
+    int val = -1;
+    if_failed_log(val, error, CCLOG_LEVEL_ERR, NULL, "Error, bad result");
 
-	/* Uninitialise logger */
-	cclogger_uninit();
+    printf("This should not appear\n");
 
-	return 0;
+error:
+    /* Uninitialise logger */
+    cclogger_uninit();
+
+    return 0;
 }
 ```
 my_log_file.log:
