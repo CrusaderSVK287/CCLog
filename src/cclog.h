@@ -1,41 +1,8 @@
 #ifndef __CCLOG_H__
 #define __CCLOG_H__
 
+#define __CCLOG_VERSION__ "v1.0.0"
 #include <stdbool.h>
-
-/* convenience macros */
-#define if_failed(val, label) {if (val != 0) {goto label;}}
-#define if_failedn(val, label) {if (val < 0) {goto label;}}
-#define if_failedp(val, label) {if (val > 0) {goto label;}}
-#define if_null(val, label) {if (val == (void*)0) {goto label;}}
-
-#define if_failed_log(val, label, log_level, priv, msg, ...) {\
-    if (val != 0) {\
-        cclog(log_level, priv, msg, ## __VA_ARGS__);\
-        goto label;\
-    }\
-}
-
-#define if_failed_logn(val, label, log_level, priv, msg, ...) {\
-    if (val < 0) {\
-        cclog(log_level, priv, msg, ## __VA_ARGS__);\
-        goto label;\
-    }\
-}
-
-#define if_failed_logp(val, label, log_level, priv, msg, ...) {\
-    if (val > 0) {\
-        cclog(log_level, priv, msg, ## __VA_ARGS__);\
-        goto label;\
-    }\
-}
-
-#define if_null_log(val, label, log_level, priv, msg, ...) {\
-    if (val == (void*)0) {\
-        cclog(log_level, priv, msg, ## __VA_ARGS__);\
-        goto label;\
-    }\
-}
 
 /** 
  * Log callback function pointer typedef. Declare such function like this:

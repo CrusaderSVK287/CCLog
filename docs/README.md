@@ -11,6 +11,7 @@ Recommended reading order:
 * [Basic usage](https://github.com/CrusaderSVK287/CCLog/tree/docs_advanced_usage/docs/basic_usage)
 * [Log levels](https://github.com/CrusaderSVK287/CCLog/tree/docs_advanced_usage/docs/log_levels)
 * [Message formatting](https://github.com/CrusaderSVK287/CCLog/tree/docs_advanced_usage/docs/message_format)
+* [Macros](https://github.com/CrusaderSVK287/CCLog/tree/docs_advanced_usage/docs/macros)
 * [Configuration](https://github.com/CrusaderSVK287/CCLog/tree/docs_advanced_usage/docs/config)
 * [Server](https://github.com/CrusaderSVK287/CCLog/tree/docs_advanced_usage/docs/server)
 

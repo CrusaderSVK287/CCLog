@@ -1,5 +1,6 @@
 #include "logger.h"
 #include "cclog.h"
+#include "cclog_macros.h"
 #include "json.h"
 #include "options.h"
 #include "server.h"
