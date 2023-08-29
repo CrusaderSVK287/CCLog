@@ -98,3 +98,4 @@ deps:
 install: $(BIN)
 	sudo cp $(BIN) /usr/lib/$(BINNAME)
 	sudo cp $(SRCDIR)cclog.h /usr/include/cclog.h
+	sudo cp $(SRCDIR)cclog_macros.h /usr/include/cclog_macros.h
