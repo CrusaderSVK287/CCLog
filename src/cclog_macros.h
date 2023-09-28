@@ -11,7 +11,7 @@
 /* Fires if val is greater than zero */
 #define if_success_p(val, label) {if (val > 0) {goto label;}}
 /* Fires if val is greater or equal to zero */
-#define if_successp_e(val, label) {if (val >= 0) {goto label;}}
+#define if_success_pe(val, label) {if (val >= 0) {goto label;}}
 /* Fires if val is less than zero */
 #define if_success_n(val, label) {if (val < 0) {goto label;}}
 /* Fires if val is less or equal to zero */
@@ -143,7 +143,7 @@
     }\
 }
 /* Fires if val is greater than zero, doesnt jump to label  */
-#define if_success_logp_ng(val, log_level, priv, msg, ...) {\
+#define if_success_log_p_ng(val, log_level, priv, msg, ...) {\
     if (val > 0) {\
         cclog(log_level, priv, msg, ## __VA_ARGS__);\
     }\
@@ -161,7 +161,7 @@
     }\
 }
 /* Fires if val is less than zero, doesnt jump to label  */
-#define if_failed_logn_ng(val, log_level, priv, msg, ...) {\
+#define if_failed_log_n_ng(val, log_level, priv, msg, ...) {\
     if (val < 0) {\
         cclog(log_level, priv, msg, ## __VA_ARGS__);\
     }\
@@ -173,7 +173,7 @@
     }\
 }
 /* Fires if val is greater than zero, doesnt jump to label  */
-#define if_failed_logp_ng(val, log_level, priv, msg, ...) {\
+#define if_failed_log_p_ng(val, log_level, priv, msg, ...) {\
     if (val > 0) {\
         cclog(log_level, priv, msg, ## __VA_ARGS__);\
     }\
