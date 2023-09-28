@@ -34,6 +34,8 @@ static int set_log_file(const char *path)
         if (!path)
                 return -1;
 
+        if (log_file_path)
+                free(log_file_path);
         log_file_path = strdup(path);
 
         if (log_file)
