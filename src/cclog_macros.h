@@ -1,11 +1,10 @@
 #ifndef __CCLOG_MACROS_H__
 #define __CCLOG_MACROS_H__
 
-#define __CCLOG_MACROS_VERSION__ "v1.0.1"
-
 #ifndef __CCLOG_H__
 #include <cclog.h>
 #endif /* __CCLOG_H__ */
+
 #include <stdbool.h>
 
 /**
