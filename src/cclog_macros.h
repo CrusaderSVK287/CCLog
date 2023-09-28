@@ -1,7 +1,13 @@
 #ifndef __CCLOG_MACROS_H__
 #define __CCLOG_MACROS_H__
 
-#define __CCLOG_MACROS_VERSION__ "v1.0.0"
+#define __CCLOG_MACROS_VERSION__ "v1.0.1"
+
+#ifndef __CCLOG_H__
+#include <cclog.h>
+#endif /* __CCLOG_H__ */
+#include <stdbool.h>
+
 /**
  * Macros for conditional jumping if expression evaluates to true
  */
@@ -30,6 +36,11 @@
 #define if_null(val, label) {if (val == (void*)0) {goto label;}}
 /* Fires if val is not null*/
 #define if_not_null(val, label) {if (val == (void*)0) {goto label;}}
+/* Fires if val is true */
+#define if_true(val, label) {if (val == true) {goto label;}}
+/* Fires if val is false */
+#define if_false(val, label) {if (val == false) {goto label;}}
+
 
 /**
  * Macros for logging and jumping if expression evaluates to true 
@@ -119,6 +130,20 @@
         goto label;\
     }\
 }
+/* Fires if val is true */
+#define if_true_log(val, log_level, priv, msg, ...) {\
+    if (val == true) {\
+        cclog(log_level, priv, msg, ## __VA_ARGS__);\
+        goto label;\
+    }\
+}
+/* Fires if val is not null */
+#define if_false_log(val, log_level, priv, msg, ...) {\
+    if (val == false) {\
+        cclog(log_level, priv, msg, ## __VA_ARGS__);\
+        goto label;\
+    }\
+}
 
 /**
  * No goto variants of log Macros
@@ -193,6 +218,18 @@
 /* Fires if val is not null, doesnt jump to label  */
 #define if_not_null_log_ng(val, log_level, priv, msg, ...) {\
     if (val != (void*)0) {\
+        cclog(log_level, priv, msg, ## __VA_ARGS__);\
+    }\
+}
+/* Fires if val is true, doesnt jump to label  */
+#define if_true_log_ng(val, log_level, priv, msg, ...) {\
+    if (val == true) {\
+        cclog(log_level, priv, msg, ## __VA_ARGS__);\
+    }\
+}
+/* Fires if val is false, doesnt jump to label  */
+#define if_false_log_ng(val, log_level, priv, msg, ...) {\
+    if (val == falsa) {\
         cclog(log_level, priv, msg, ## __VA_ARGS__);\
     }\
 }
