@@ -677,8 +677,10 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
                                        msg_format), error);
                 
                 /* Free the buffers if they were allocated */
-                if (msg_format) free(msg_format);
-                if (cb_map) free(cb_map);
+                if (msg_format)
+                        free(msg_format);
+                if (cb_map)
+                        free(cb_map);
 
                 /* increase the index of the json array object we want next */
                 index++;
@@ -687,8 +689,10 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
         return 0;
 error:
         /* In case something fails, free the buffers */
-        if (msg_format) free(msg_format);
-        if (cb_map) free(cb_map);
+        if (msg_format)
+                free(msg_format);
+        if (cb_map)
+                free(cb_map);
 
         cclog_error("Failed to load log level on idex %d", index);
         return -1;
