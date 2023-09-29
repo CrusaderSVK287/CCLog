@@ -293,18 +293,9 @@ int _cclogger_log(int line, const char* file, const char *func,
         /* Write to file */
         if (log_level->log_to_file) {
                 fprintf(log_file, "%s\n", msg_buff);
+                fflush(log_file);
         }
 
-        /* 
-         * Ugly hack to enable server being able to read the log file in real time 
-         * Since the file was never closed, server only read the last session. 
-         * This piece of code simulates reopening the file 
-         */
-        if (is_server_enabled()) {
-                char *path = strdup(get_opt(OPTIONS_LOG_FILE_PATH));
-                set_opt(OPTIONS_LOG_FILE, path);
-                free(path);
-        }
 
         /* Write to tty in color*/
         if (log_level->log_to_tty) {
