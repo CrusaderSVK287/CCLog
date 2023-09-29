@@ -135,7 +135,7 @@ int cclogger_uninit()
 {
         cclogger_reset_log_levels();
 
-        if (*(int*)get_opt(OPTIONS_SERVER_ENABLED) == 1) {
+        if (is_server_enabled()) {
                 cclogger_server_stop();
         }
 

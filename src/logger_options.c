@@ -183,7 +183,8 @@ int set_opt(option_t opt, void *value)
                 default: return -1;
         }
 
-        if (logger_initialised)
+        /* This is needed for server to always have access to most recent config */
+        if (server_enabled)
                 json_load_current_config();
 
         return ret;
