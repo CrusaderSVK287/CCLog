@@ -34,6 +34,8 @@ static int set_log_file(const char *path)
         if (!path)
                 return -1;
 
+        if (log_file_path)
+                free(log_file_path);
         log_file_path = strdup(path);
 
         if (log_file)
@@ -181,7 +183,8 @@ int set_opt(option_t opt, void *value)
                 default: return -1;
         }
 
-        if (logger_initialised)
+        /* This is needed for server to always have access to most recent config */
+        if (server_enabled)
                 json_load_current_config();
 
         return ret;

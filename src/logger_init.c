@@ -30,6 +30,8 @@ static int open_single_file(const char *path, const char *proc_name)
         /* Set the log file option */
         cclog_debug("Opening log file: %s", buff);
         if_failed(set_opt(OPTIONS_LOG_FILE, buff), error);
+        int val = LOGGING_SINGLE_FILE;
+        if_failed(set_opt(OPTIONS_LOG_METHOD, &val), error);
         
         return 0;
 error:
@@ -47,7 +49,7 @@ static int open_multiple_file_mode(const char *path, const char *proc_name)
         /* Get current time to prepend to filename */
         struct tm *timeinfo = util_current_timeinfo();
 
-        sprintf(time_buf ,"[%04d-%02d-%02d_%02d:%02d:%02d]", 
+        sprintf(time_buf ,"%04d-%02d-%02d_%02d:%02d:%02d", 
                 timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, 
                 timeinfo->tm_mday, 
                 timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
@@ -64,7 +66,9 @@ static int open_multiple_file_mode(const char *path, const char *proc_name)
         /* Set the log file option */
         cclog_debug("Opening log file: %s\n", buff);
         if_failed(set_opt(OPTIONS_LOG_FILE, buff), error);
-       
+        int val = LOGGING_MULTIPLE_FILES;
+        if_failed(set_opt(OPTIONS_LOG_METHOD, &val), error);
+
         return 0; 
 error:
         cclog_debug("Failed opening log file\n");
@@ -135,7 +139,7 @@ int cclogger_uninit()
 {
         cclogger_reset_log_levels();
 
-        if (*(int*)get_opt(OPTIONS_SERVER_ENABLED) == 1) {
+        if (is_server_enabled()) {
                 cclogger_server_stop();
         }
 

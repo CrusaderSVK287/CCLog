@@ -293,7 +293,9 @@ int _cclogger_log(int line, const char* file, const char *func,
         /* Write to file */
         if (log_level->log_to_file) {
                 fprintf(log_file, "%s\n", msg_buff);
+                fflush(log_file);
         }
+
 
         /* Write to tty in color*/
         if (log_level->log_to_tty) {
@@ -368,7 +370,8 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
                 if_failed(llist_add(log_levels_list, level), error);
         }
 
-        if (*(int*)get_opt(OPTIONS_LOGGER_INITIALISED) == 1)
+        /* This is needed for server to have the most recent configuration */
+        if (is_server_enabled())
                 json_load_current_config();
 
         return 0;
@@ -789,6 +792,8 @@ int cclogger_server_start(int port)
         if_failed(set_opt(OPTIONS_SERVER_PID, &server_pid), error);
         if_failed(set_opt(OPTIONS_SERVER_PORT, &port), error);
 
+        /* Load the most current configuration */
+        json_load_current_config();
         return server_pid;
 error:
         cclog_error("Failed to initialise server on port %d", port);
