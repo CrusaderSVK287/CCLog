@@ -8,6 +8,7 @@
 #include "utils/defines.h"
 #include "utils/utils.h"
 #include <bits/getopt_core.h>
+#include <sys/time.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@
 #define VAR_MSG "MSG"
 #define VAR_ERRNO "ERRNO"
 #define VAR_ERMSG "ERMSG"
+#define VAR_UPTIME "UPTIME"
 
 #define VAR_YEAR "YYYY"
 #define VAR_MONTH "MM"
@@ -128,6 +130,17 @@ static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t
         }
         if (!strcmp(var, VAR_ERMSG)) {
                 return strerror(errno);
+        }
+        if (!strcmp(var, VAR_UPTIME)) {
+                struct timeval time;
+                struct timeval *init_time = (struct timeval*)get_opt(OPTIONS_INIT_TIME);
+                gettimeofday(&time, NULL);
+
+                double elapsed_time = (time.tv_sec - init_time->tv_sec) +
+                                        (time.tv_usec - init_time->tv_usec) / 1000000.0;
+
+                snprintf(var_buff, MSG_SIZE, "%.4f", elapsed_time);
+                return var_buff;
         }
 
         if (!strcmp(var, VAR_YEAR)) {

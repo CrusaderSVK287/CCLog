@@ -34,6 +34,7 @@ typedef enum option {
     OPTIONS_SERVER_ENABLED,
     OPTIONS_SERVER_PORT,
     OPTIONS_SERVER_PID,
+    OPTIONS_INIT_TIME,
 } option_t;
 
 /**

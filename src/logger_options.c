@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/time.h>
 
 /* logger initialised */
 static int logger_initialised = 0;
@@ -140,6 +141,14 @@ static int set_server_pid(int value) {
         return 0;
 }
 
+/* init time */
+static struct timeval init_time;
+static struct timeval *get_init_time() {return &init_time;}
+static int set_init_time() {
+        gettimeofday(&init_time, NULL);
+        return 0;
+}
+
 /*   option api functions    */
 
 /* Function returns the value of option specified in opt */
@@ -158,6 +167,7 @@ void* get_opt(option_t opt)
                 case OPTIONS_SERVER_ENABLED: return get_server_enabled();
                 case OPTIONS_SERVER_PORT: return get_server_port();
                 case OPTIONS_SERVER_PID: return get_server_pid();
+                case OPTIONS_INIT_TIME: return get_init_time();
                 default: return NULL;
         }
 }
@@ -180,6 +190,7 @@ int set_opt(option_t opt, void *value)
                 case OPTIONS_SERVER_ENABLED: ret = set_server_enabled(*(int*)value); break;
                 case OPTIONS_SERVER_PORT: ret = set_server_port(*(int*)value); break;
                 case OPTIONS_SERVER_PID: ret = set_server_pid(*(int*)value); break;
+                case OPTIONS_INIT_TIME: ret = set_init_time(); break;
                 default: return -1;
         }
 

@@ -128,6 +128,8 @@ int cclogger_init(logging_type_t type, const char* path, const char *proc_name)
         set_opt(OPTIONS_LOGGER_INITIALISED, &val);
         val = 0;
         set_opt(OPTIONS_LOADED_FROM_JSON, &val);
+        /* init time doesnt need a value passed */
+        set_opt(OPTIONS_INIT_TIME, NULL);
 
         return 0;
 error:

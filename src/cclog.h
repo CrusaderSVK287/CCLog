@@ -178,6 +178,7 @@ void cclogger_reset_log_levels();
  *      PID - pid of the running process
  *      ERRNO - error number as a digit
  *      ERMSG - error message indicated by errno, got from strerror()
+ *      UPTIME - time elapsed since initialisation of the logger
  *      YYYY - Current year
  *      MM - Current month (1 to 12)
  *      DD - Current day (1 to 31)
