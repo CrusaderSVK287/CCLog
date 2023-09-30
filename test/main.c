@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define LOG_FILE_PATH  "/home/lukas/Repositories/CCLog/TestLogFile"
+#define LOG_FILE_PATH  "/home/lukas/Repositories/CCLog/logdir/TestLogFile"
 #define JSON_FILE_PATH "/home/lukas/TestExort.json"
 
 int callback(const char *msg, void *priv) {
@@ -26,15 +26,16 @@ int main(int argc, char **argv)
         // json();
         // cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH,(const char**) argv);
 
-        cclogger_init(LOGGING_SINGLE_FILE , LOG_FILE_PATH, "Test_program");
+        cclogger_init(LOGGING_MULTIPLE_FILES , LOG_FILE_PATH, "Test_program");
 
         cclogger_load_config_json(JSON_FILE_PATH, maps);
         // cclogger_server_start(8000);
 
 
 
-        for (int i = 0; i < 15; i ++) {
-                printf("%d\n", i + 1);
+        for (int i = 0; i < 30; i ++) {
+                //printf("%d\n", i + 1);
+		cclog(3, NULL, "Test uptime in seconds %d", i);
                 sleep(1);
         }
         // cclogger_export_config_json("/home/lukas/CompareExport.json");
