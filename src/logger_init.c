@@ -30,6 +30,8 @@ static int open_single_file(const char *path, const char *proc_name)
         /* Set the log file option */
         cclog_debug("Opening log file: %s", buff);
         if_failed(set_opt(OPTIONS_LOG_FILE, buff), error);
+        int val = LOGGING_SINGLE_FILE;
+        if_failed(set_opt(OPTIONS_LOG_METHOD, &val), error);
         
         return 0;
 error:
@@ -64,7 +66,9 @@ static int open_multiple_file_mode(const char *path, const char *proc_name)
         /* Set the log file option */
         cclog_debug("Opening log file: %s\n", buff);
         if_failed(set_opt(OPTIONS_LOG_FILE, buff), error);
-       
+        int val = LOGGING_MULTIPLE_FILES;
+        if_failed(set_opt(OPTIONS_LOG_METHOD, &val), error);
+
         return 0; 
 error:
         cclog_debug("Failed opening log file\n");

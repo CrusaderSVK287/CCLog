@@ -4,6 +4,7 @@
 #include "json.h"
 #include "options.h"
 #include "logger.h"
+#include "utils/utils.h"
 #include <asm-generic/errno-base.h>
 #include <asm-generic/errno.h>
 #include <asm-generic/socket.h>
@@ -20,6 +21,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <dirent.h>
 
 #ifdef CCLOG_DEBUG
 #define cclog_server_debug(MSG, ...) cclog_debug("Server pid %d : " MSG, getpid(), ## __VA_ARGS__);
@@ -31,7 +33,7 @@
         "<html><body>"\
         "  <h3>CClog index</h3>"\
         "  <a href=\"/config\">Configuration</a><br>"\
-        "  <a href=\"/log\">Current Log</a>"\
+        "  <a href=\"/log\">Logs</a>"\
         "</body></html>"
 
 #define SIG_INT_MSG "Received sig int on main server process\n"
@@ -41,7 +43,7 @@
 
 #define SERVER_BACKLOG_SIZE 10
 
-typedef char* (*server_mapping_data_fetch_t)(char *response);
+typedef char* (*server_mapping_data_fetch_t)(char *response, const char *request);
 
 typedef struct {
         const char *map;
@@ -115,7 +117,7 @@ error:
 }
 
 /* map handler for / */
-static char *server_mapping_index(char *response)
+static char *server_mapping_index(char *response, const char *request)
 {
         char buff[BUFSIZ];
         /* add header fields */
@@ -145,7 +147,7 @@ error:
 }
 
 /* map handler for /config */
-static char *server_mapping_config(char *response)
+static char *server_mapping_config(char *response, const char *request)
 {       
         char buff[BUFSIZ];
         ssize_t json_buffer_lenght = 0;
@@ -177,12 +179,10 @@ error:
 }
 
 /* map handler for /log */
-static char *server_mapping_log(char *response)
+static char *server_create_log_page_response(char *response, const char *path)
 {
-        const char *file_path = (const char*)get_opt(OPTIONS_LOG_FILE_PATH);
-
         /* open log file at the start */
-        int fd = open(file_path, O_RDONLY);
+        int fd = open(path, O_RDONLY);
         if (!fd) {
                 cclog_server_debug("Failed to open log file descriptor");
                 return NULL;
@@ -216,14 +216,113 @@ static char *server_mapping_log(char *response)
                  "%s text/html\r\n"
                  "%s %ld\r\n\r\n"
                  "<h3>Log entry: %s</h3>"
-                 "<a href=\"/\">Back</a><br>"
+                 "<a href=\"%s\">Back</a><br>"
                  "<pre>%s</pre>", 
-                 HEADER_CONTENT_TYPE, HEADER_CONTENT_LENGHT, bytes, 
-                 file_path, file_data);
+                 HEADER_CONTENT_TYPE,
+                 HEADER_CONTENT_LENGHT, bytes, 
+                 path, 
+                 /* if we have multiple logs, we want to get back to the list instead of index */
+                 (*(int*)get_opt(OPTIONS_LOG_METHOD) == LOGGING_SINGLE_FILE) ? "/" : "/log",
+                 file_data);
 
         free(file_data);
         close(fd);
 
+        return response;
+}
+
+static char *server_create_log_file_list(char *response, const char* dir_path)
+{
+        DIR *directory = opendir(dir_path);
+
+        if (!directory) {
+                cclog_server_debug("Could not open directory");
+                return NULL;
+        }
+
+        char *file_list = calloc(1, BUFSIZ);
+        if (!file_list)
+                return NULL;
+
+        ssize_t bytes = 0;
+        ssize_t list_size = BUFSIZ;
+        char format[BUFSIZ];
+
+        struct dirent *entry;
+        while ((entry = readdir(directory)) != NULL) {
+                /* ignore current, parent folders and every file not having ".log" textention */
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0 ||
+                                        !strstr(entry->d_name, ".log")) {
+                        continue;
+                }
+
+                memset(format, 0, BUFSIZ);
+                bytes += snprintf(format, BUFSIZ, "<a href=\"/log?entry=%s\">%s</a><br>\n", 
+                                entry->d_name, entry->d_name);
+
+                /* if the list_size isnt large enough, expand it */
+                if (bytes > list_size) {
+                        file_list = realloc(file_list, list_size + BUFSIZ);
+                        
+                        if (!file_list)
+                               return NULL; 
+
+                        list_size += BUFSIZ;
+                }
+
+                strcat(file_list, format);
+        }
+
+        /* allocate enough space for response */
+        response = realloc(response, bytes + BUFSIZ);
+        if_null(response, error);
+
+        snprintf(response, bytes + BUFSIZ, 
+                 "HTTP/1.0 200 OK\r\n"
+                 "%s text/html\r\n"
+                 "%s %ld\r\n\r\n"
+                 "<h3>Select log entry:</h3>"
+                 "<a href=\"/\">Back</a><br>"
+                 "%s",
+                 HEADER_CONTENT_TYPE, 
+                 HEADER_CONTENT_LENGHT, bytes + BUFSIZ, 
+                 file_list);
+
+error:
+        free (file_list);
+        closedir(directory);
+
+        return response;
+}
+
+static char *server_mapping_log(char *response, const char *request)
+{
+        int method = *(int*)get_opt(OPTIONS_LOG_METHOD);
+
+        /* If we have one file, use path for it */
+        if (method == LOGGING_SINGLE_FILE) {
+                return server_create_log_page_response(response,
+                                (char*)get_opt(OPTIONS_LOG_FILE_PATH)); 
+        }
+
+        /* If we have multiple files */
+        char *dir_path = strdup((char*)get_opt(OPTIONS_LOG_FILE_PATH));
+        replace_last_char(dir_path, '/', 0);
+
+        /* If the request contains the entry */
+        if (strstr(request, "?entry=")) {
+                char buff[BUFSIZ];
+                char filepath[BUFSIZ];
+                sscanf(strchr(request, '?'), "?entry=%s", buff);
+                
+                snprintf(filepath, BUFSIZ, "%s/%s", dir_path, buff);
+                response = server_create_log_page_response(response, filepath);
+        } else {
+                /* Else generate the list of files in the directory */
+                response = server_create_log_file_list(response, dir_path);
+        }
+
+        free(dir_path);
         return response;
 }
 
@@ -241,14 +340,19 @@ static server_mapping_data_fetch_t get_func_from_map(const char *map)
         if (!map)
                 return NULL;
 
+        char *map_copy = strdup(map);
+        replace_last_char(map_copy, '?', 0);
+
         int i = 0;
         while (maps[i].map && maps[i].func) {
-                if (!strcmp(map, maps[i].map)) {
+                if (!strcmp(map_copy, maps[i].map)) {
+                        free(map_copy);
                         return maps[i].func;
                 }
                 i++;
         }
 
+        free(map_copy);
         return NULL;
 }
 
@@ -266,7 +370,7 @@ static char *build_response(char *response, const char *http_mapping)
         strcat(response, "HTTP/1.0 200 OK\r\n");
 
         /* catonate header fields and data */
-        response = data_fetch_func(response);
+        response = data_fetch_func(response, http_mapping);
         if_null(response, error);
       
         return response;
