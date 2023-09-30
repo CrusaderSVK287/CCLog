@@ -24,3 +24,15 @@ bool str_to_bool(const char *s)
         return (!strcmp(s, "true")) ? true : false;
 }
 
+char *replace_last_char(char *s, char old_c, char new_c)
+{
+        for (int i = strlen(s); i >= 0; i--) {
+                if (s[i] == old_c) {
+                        s[i] = new_c;
+                        return s;
+                }
+        }
+
+        return s;
+}
+
