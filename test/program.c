@@ -49,8 +49,8 @@ void generic_usage_test(const char **argv)
         printf("\n\nStarting generic usage test, no errors should pop up\n\n");
         cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH , "test");
 
-        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], "${DATE} ${MSG}");
-        cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL, "String ${MSG}");
+        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], "${DATE} ${MSG}", 10);
+        cclogger_add_log_level(true, false, CCLOG_TTY_CLR_DEF, NULL, "String ${MSG}", 10);
         cclogger_export_config_json(JSON_FILE_PATH);
         
         cclog(0, NULL, "Testing message without format");
@@ -72,7 +72,7 @@ void default_message_set_test(const char **argv)
         printf("\n\nStarting %s \n\n", __FUNCTION__);
         cclogger_init(LOGGING_SINGLE_FILE, LOG_FILE_PATH, "test");
 
-        cclogger_add_log_level(false, true, CCLOG_TTY_CLR_DEF, NULL, "Override msg format ${MSG}");
+        cclogger_add_log_level(false, true, CCLOG_TTY_CLR_DEF, NULL, "Override msg format ${MSG}", 10);
 
         puts("Valid string");
         cclogger_set_default_message_format("${DATE} Testing ok ${LINE} string ${TIME}");
