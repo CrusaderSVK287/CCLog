@@ -142,13 +142,16 @@ int _cclogger_log(int line, const char* file, const char *func,
  * @color: enum indicating which color will be used to display the message
  *      to stderr. Has no effect if log_to_tty is false 
  * @callback: callback function called at the end of log function. Wont be called if NULL
- * @msg_format: If specified, will override the default message format. 
+ * @msg_format_override: If specified, will override the default message format. 
  *      See cclogger_set_default_message_format for further explanation.
- *      Specify NULL to not override
+ *      Specify NULL to not override.
+ * @verbosity_level: Verbosity level of this log level. If the verbosity is 
+ *      higher than the logger verbosity, the log will not be made, nor any 
+ *      callbacks will be called.
  */
 int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
         cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, 
-        const char *msg_format_override);
+        const char *msg_format_override, int verbosity_level);
 
 /**
  * Function removes all log levels, including default ones.
@@ -194,6 +197,15 @@ int cclogger_set_default_message_format(const char *str);
  * Usefull for example for getting callback return value 
  */
 int cclogger_last_log_return_value();
+
+/**
+ * Sets verbosity level for logger. Each log level has a verbosity assigned 
+ * to it. If the log level used has higher verbosity level than is the verbosity 
+ * level for logger, the log will not be made, nor any callbacks will be called.
+ * Default verbosity level for logger is 10 and all default log levels have 
+ * default verbosity level set to 5
+ */
+void cclogger_set_verbosity_level(int verbosity);
 
 /**
  * Calls the callback function from the last log event with priv data.

@@ -259,22 +259,6 @@ int _cclogger_log(int line, const char* file, const char *func,
         if (!file || !func || !msg)
                 goto exit;
 
-        /* convenience struct to hold arguments */
-        msg_buff_opt_t buff_opts = {
-                .msg = msg,
-                .file = file,
-                .func = func,
-                .line = line,
-                .valist = &args
-        };
-
-        /* getting log file */
-        FILE* log_file = (FILE*)get_opt(OPTIONS_LOG_FILE);
-        if (!log_file) {
-                cclog_error("CRITICAL: Log file is not opened, did you call cclog_init()?");
-                goto exit;
-        }
-
         /**
          * checking whether any log levels are defined, this can happen if 
          * cclogger_reset_log_levels is called and no levels are specified after
@@ -295,10 +279,34 @@ int _cclogger_log(int line, const char* file, const char *func,
                     "\tlog_to_file: %d\n"
                     "\tlog_to_tty:  %d\n"
                     "\tcallback:    %s\n"
-                    "\tformat:      %s\n",
+                    "\tformat:      %s\n"
+                    "\tverbosity:   %d\n",
                     level, log_level->color, log_level->log_to_file, log_level->log_to_tty,
                     (log_level->callback) ? "Yes" : "No", 
-                    (log_level->msg_format) ? log_level->msg_format : "NULL");
+                    (log_level->msg_format) ? log_level->msg_format : "NULL", log_level->verbosity);
+        
+        /* Check whether log level falls into the log verbosity */
+        if (log_level->verbosity > *(int*)get_opt(OPTIONS_VERBOSITY)) {
+                cclog_debug("Log level verbosity %d which is higher than logger");
+                return 0;
+        }
+
+        /* convenience struct to hold arguments */
+        msg_buff_opt_t buff_opts = {
+                .msg = msg,
+                .file = file,
+                .func = func,
+                .line = line,
+                .valist = &args
+        };
+
+        /* getting log file */
+        FILE* log_file = (FILE*)get_opt(OPTIONS_LOG_FILE);
+        if (!log_file) {
+                cclog_error("CRITICAL: Log file is not opened, did you call cclog_init()?");
+                goto exit;
+        }
+
 
         /* Create message buffer */
         msg_buff = create_msg_buffer(&buff_opts, log_level);
@@ -345,7 +353,8 @@ exit:
 #define _cclogger_log(...) DO_NOT_CALL_DIRECTLY_USE_cclog_MACRO
 
 int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, const char *msg_format)
+        cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, 
+        const char *msg_format, int verbosity_level)
 {
         /* Allocate the level struct on the heap */
         log_level_t *level = calloc(1, sizeof(log_level_t)); 
@@ -358,6 +367,7 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
         level->log_to_file = log_to_file;
         level->log_to_tty = log_to_tty;
         level->color = color;
+        level->verbosity = verbosity_level;
  
         if (callback) {
                 level->callback = callback->func_ptr;
@@ -501,6 +511,12 @@ error:
         return -1;
 }
 
+void cclogger_set_verbosity_level(int verbosity) 
+{
+        int opt = verbosity;
+        set_opt(OPTIONS_VERBOSITY, &opt);
+}
+
 int cclogger_last_log_return_value() 
 {
         return *(int*)get_opt(OPTIONS_LAST_LOG_RET);
@@ -535,6 +551,8 @@ int export_log_level(void *data, void *priv)
         
         sprintf(buffer, "%d", log_level->color);
         json_add_parameter("color", buffer);
+        sprintf(buffer, "%d", log_level->verbosity);
+        json_add_parameter("verbosity", buffer);
 
         if (log_level->msg_format) {
                 sprintf(buffer, "\"%s\"", log_level->msg_format);
@@ -563,6 +581,9 @@ void json_load_current_config()
         json_add_parameter("log_method", buff);;
         sprintf(buff, "\"%s\"", (const char *)get_opt(OPTIONS_DEF_MSG_FORMAT));
         json_add_parameter("def_msg_format", buff);
+        sprintf(buff, "%d", *(int*)get_opt(OPTIONS_VERBOSITY));
+        json_add_parameter("logger_verbosity", buff);
+
         
         json_add_array("log_levels");
         llist_foreach(log_levels_list, export_log_level, NULL);
@@ -629,6 +650,7 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
         cclog_tty_log_color_t color;
         char *msg_format = NULL;
         char *cb_map = NULL;
+        int verbosity_level = 0;
 
         json_param_t *param = NULL;
 
@@ -660,6 +682,13 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
                 }
                 color = param->number;
 
+                param = json_get_param(object, "verbosity");
+                if (!param || param->type != JSON_PARAM_NUMBER) {
+                        cclog_error("JSON: Invalid value for verbosity");
+                        goto error;
+                }
+                verbosity_level = param->number;
+
                 /**
                  * Since we need the strings copied, we use strdup. 
                  * This needs to be addressed because it causes a memory leak
@@ -690,7 +719,7 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
                 /* Add the level */
                 if_failed(cclogger_add_log_level(log_to_file, log_to_tty, color, 
                                        get_mapping_from_name(cb_mappings, cb_map), 
-                                       msg_format), error);
+                                       msg_format, verbosity_level), error);
                 
                 /* Free the buffers if they were allocated */
                 if (msg_format)
@@ -744,6 +773,18 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
 
         if (set_opt(OPTIONS_DEF_MSG_FORMAT, param->string) < 0) {
                 cclog_error("Failed to set default message format");
+                goto error;
+        }
+
+        /* Setting verbosity level */
+        param = json_get_param(json, "logger_verbosity");
+        if (!param) {
+                cclog_error("Failed to retrieve verbosity from file");
+                goto error;
+        }
+
+        if (set_opt(OPTIONS_VERBOSITY, &param->number) < 0) {
+                cclog_error("Failed to set verbosity format");
                 goto error;
         }
 
