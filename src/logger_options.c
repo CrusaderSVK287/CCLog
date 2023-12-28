@@ -149,6 +149,15 @@ static int set_init_time() {
         return 0;
 }
 
+/* log verbosity level */
+static int verbosity_level = 0;
+
+static int *get_verbosity_level() { return &verbosity_level; }
+static int set_verbosity_level(int value) {
+        verbosity_level = value;
+        return 0;
+}
+
 /*   option api functions    */
 
 /* Function returns the value of option specified in opt */
@@ -168,6 +177,7 @@ void* get_opt(option_t opt)
                 case OPTIONS_SERVER_PORT: return get_server_port();
                 case OPTIONS_SERVER_PID: return get_server_pid();
                 case OPTIONS_INIT_TIME: return get_init_time();
+                case OPTIONS_VERBOSITY: return get_verbosity_level();
                 default: return NULL;
         }
 }
@@ -191,6 +201,7 @@ int set_opt(option_t opt, void *value)
                 case OPTIONS_SERVER_PORT: ret = set_server_port(*(int*)value); break;
                 case OPTIONS_SERVER_PID: ret = set_server_pid(*(int*)value); break;
                 case OPTIONS_INIT_TIME: ret = set_init_time(); break;
+                case OPTIONS_VERBOSITY: ret = set_verbosity_level(*(int*)value); break;
                 default: return -1;
         }
 

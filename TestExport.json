@@ -1,0 +1,47 @@
+{
+  "log_file_path": "/home/lukas/Repositories/CCLog/TestLogFile.log",
+  "log_method": 0,
+  "def_msg_format": "(${DATE}) ${TIME} : ${MSG}",
+  "logger_verbosity": 15,
+  "log_levels": [
+    {
+      "log_to_tty": true,
+      "log_to_file": false,
+      "color": 0,
+      "verbosity": 5
+    },
+    {
+      "log_to_tty": false,
+      "log_to_file": true,
+      "color": 0,
+      "verbosity": 5
+    },
+    {
+      "log_to_tty": true,
+      "log_to_file": true,
+      "color": 2,
+      "verbosity": 5
+    },
+    {
+      "log_to_tty": true,
+      "log_to_file": true,
+      "color": 8,
+      "verbosity": 8
+    },
+    {
+      "log_to_tty": true,
+      "log_to_file": true,
+      "color": 8,
+      "verbosity": 12
+    },
+    {
+      "log_to_tty": true,
+      "log_to_file": true,
+      "color": 8,
+      "verbosity": 20
+    }
+  ],
+  "server": {
+    "port": 8000
+  }
+}

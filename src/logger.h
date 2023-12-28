@@ -11,6 +11,9 @@
  * @color: enum indicating which color will be used to display the message
  *      to stderr. Has no effect if log_to_tty is false 
  * @callback: callback function called at the end of log function. Wont be called if NULL
+ * @cb_name: string name of callback 
+ * @msg_format: message format to override the default message format
+ * @verbosity: verbosity level of the log level. Check API function for more information
  */
 typedef struct log_level {
     bool log_to_file;
@@ -19,6 +22,7 @@ typedef struct log_level {
     cclog_cb callback;
     const char *cb_name;
     const char *msg_format;
+    int verbosity;
 } log_level_t;
 
 /**
