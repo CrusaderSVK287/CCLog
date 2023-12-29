@@ -1,7 +1,7 @@
 #ifndef __CCLOG_H__
 #define __CCLOG_H__
 
-#define __CCLOG_VERSION__ "v1.2.0"
+#define __CCLOG_VERSION__ "v1.2.1"
 #include <stdbool.h>
 
 /** 
