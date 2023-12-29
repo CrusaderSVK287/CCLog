@@ -99,7 +99,9 @@ int cclogger_init(logging_type_t type, const char* path, const char *proc_name)
         }
 
         json_init_buffer();
-        
+ 
+        cclogger_set_verbosity_level(10);
+
         /* Add default log levels */
         if_failed(add_default_log_levels(), error);
 

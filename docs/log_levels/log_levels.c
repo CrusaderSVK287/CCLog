@@ -27,13 +27,19 @@ int main()
 	 */
 	cclogger_init(LOGGING_SINGLE_FILE, "./my_log_file", NULL);
 
-        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_MAG, NULL, NULL);
-        cclogger_add_log_level(false, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], NULL);
+        /* Set the logger verbosity to 10 */
+        cclogger_set_verbosity_level(10);
+
+        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_MAG, NULL, NULL, 5);
+        cclogger_add_log_level(false, true, CCLOG_TTY_CLR_BLU, &cclog_cb_maps[0], NULL, 5);
+        cclogger_add_log_level(true, true, CCLOG_TTY_CLR_RED, NULL, NULL, 20);
 	
 	/* We write a message to the file only */
 	cclog(CCLOG_LEVEL_MSG, NULL, "Lets do some logging");
 
         cclog(3, NULL, "This message will appear both in file and terminal");
+
+        cclog(5, NULL, "This message will NOT appear since logger verbosity is way to low");
 	
         int num = 30;
         printf("callback return: %d\n", cclog(4, &num, 
