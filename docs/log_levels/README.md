@@ -11,7 +11,7 @@ Each log level has its own index. The default ones have indexes 0, 1 and 2 respe
 
 ### How to add a custom log level
 To add a custom log level you can use cclogger_add_log_level function which has the following declaration:
-`int cclogger_add_log_level(bool log_to_file, bool log_to_tty, cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, const char *msg_format_override);`
+`int cclogger_add_log_level(bool log_to_file, bool log_to_tty, cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, const char *msg_format_override, int verbosity);`
 
 This function will create a log level and save it to the loggers configuration. Your created log levels will start with index of 3 (because 0 - 2 are taken by defaults) unless you erase all log levels before (more on that later). Here is the explanation for the arguments this function takes.
 * bool log_to_file: whether the message should be logged to the file
@@ -19,6 +19,7 @@ This function will create a log level and save it to the loggers configuration. 
 * cclog_tty_log_color_t: enum, indicating terminal color in which the message will be displayed (not needed if log_to_tty is false)
 * cclog_callback_mapping_t \*callback: pointer to a callback function mapping that should be called at the end of logging (More on this later)
 * const char \*msg_format_override: override of the default format message (see message format documentation)
+* int verbosity: Set the verbosity of this log level. If the verbosity is higher than logger set verbosity, the log will not be made 
 
 ### Removing log levels
 There is no way yet to remove a specifil log level with specific index.\
@@ -28,6 +29,14 @@ void cclogger_reset_log_levels();
 ```
 To remove all currently loaded log levels, including the default ones. Once using this function you have to add at least one custom log level. 
 ** Beware that this level will start with index 0 !**
+
+### Verbosity 
+Each log level has its verbosity. Verbosity is a general level at which the logger operates. Logger verbosity is set by function
+```c 
+void cclogger_set_verbosity_level(int verbosity);
+```
+logger verbosity is 10 by default and the default log levels all have verbosity of 5. Verbosity determines, whether a log will be performed 
+or not. If logger verbosity is higher ot equal to the verbosity level of a log level, the log will be performed. If log level has higher verbosity than logger, log will no be made.
 
 ### Callbacks
 Callback functions allow you to execute some code after the logging process. They are declared like this\

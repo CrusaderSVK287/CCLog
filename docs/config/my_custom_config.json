@@ -2,38 +2,45 @@
   "log_file_path": "./my_log_file.log",
   "log_method": 0,
   "def_msg_format": "(${TIME}) ${FILE} : ${MSG}",
+  "logger_verbosity": 0,
   "log_levels": [
     {
       "log_to_tty": true,
       "log_to_file": false,
-      "color": 0
+      "color": 0,
+      "verbosity": 5
     },
     {
       "log_to_tty": false,
       "log_to_file": true,
-      "color": 0
+      "color": 0,
+      "verbosity": 5
     },
     {
       "log_to_tty": true,
       "log_to_file": true,
-      "color": 2
+      "color": 2,
+      "verbosity": 5
     },
     {
       "log_to_tty": true,
       "log_to_file": true,
       "color": 6,
+      "verbosity": 5,
       "msg_format": "This log level has overriden message format: ${MSG}"
     },
     {
       "log_to_tty": true,
       "log_to_file": false,
       "color": 5,
+      "verbosity": 5,
       "callback": "log_callback"
     },
     {
       "log_to_tty": true,
       "log_to_file": true,
       "color": 3,
+      "verbosity": 5,
       "msg_format": "This log level has both message format override and a callback: ${MSG}",
       "callback": "log_callback"
     }
