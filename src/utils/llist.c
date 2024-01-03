@@ -19,7 +19,7 @@ static cclog_llist_node_t *get_node_index(cclog_llist_node_t *first, int target)
         return first;
 }
 
-cclog_llist_t *llist_init(void *data)
+cclog_llist_t *cclog_llist_init(void *data)
 {
         if (!data)
                 return NULL;
@@ -35,7 +35,7 @@ cclog_llist_t *llist_init(void *data)
         return llist;
 }
 
-int llist_add(cclog_llist_t *list, void *data)
+int cclog_llist_add(cclog_llist_t *list, void *data)
 {
         if (!list || !data)
                 return -1;
@@ -60,14 +60,14 @@ int llist_add(cclog_llist_t *list, void *data)
         return 0;
 }
 
-void *llist_get_index(cclog_llist_t *list, int index)
+void *cclog_llist_get_index(cclog_llist_t *list, int index)
 {
         /* get node on index and return its data */
         cclog_llist_node_t *node = get_node_index(list->first, index);
         return (node) ? node->data : NULL;
 }
 
-void llist_clean(cclog_llist_t *list)
+void cclog_llist_clean(cclog_llist_t *list)
 {
         cclog_llist_node_t *this = list->first;
         cclog_llist_node_t *tmp;
@@ -84,13 +84,13 @@ void llist_clean(cclog_llist_t *list)
         free(list);
 }
 
-void llist_foreach(cclog_llist_t *llist, llist_foreach_func func, void *priv)
+void cclog_llist_foreach(cclog_llist_t *llist, llist_foreach_func func, void *priv)
 {
         if (!llist || !func)
                 return;
 
         for (int i = 0; i < llist->num_of_entries; i++) {
-                func(llist_get_index(llist, i), priv);
+                func(cclog_llist_get_index(llist, i), priv);
         }
 }
 

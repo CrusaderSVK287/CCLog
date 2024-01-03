@@ -88,7 +88,7 @@ static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t
         if (!var)
                 return STR_EMPTY;
 
-        struct tm *timeinfo = util_current_timeinfo();
+        struct tm *timeinfo = cclog_util_current_timeinfo();
         
         /* clear the static buffer before use */
         static char var_buff[MSG_SIZE + 1];
@@ -133,7 +133,7 @@ static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t
         }
         if (!strcmp(var, VAR_UPTIME)) {
                 struct timeval time;
-                struct timeval *init_time = (struct timeval*)get_opt(OPTIONS_INIT_TIME);
+                struct timeval *init_time = (struct timeval*)cclog_get_opt(OPTIONS_INIT_TIME);
                 gettimeofday(&time, NULL);
 
                 double elapsed_time = (time.tv_sec - init_time->tv_sec) +
@@ -177,7 +177,7 @@ static const char *msg_buffer_variable_translate(const char *var, msg_buff_opt_t
 }
 
 /* Function generates the result message buffer */
-static const char *create_msg_buffer(msg_buff_opt_t *opts, log_level_t *log_level)
+static const char *create_msg_buffer(msg_buff_opt_t *opts, cclog_log_level_t *log_level)
 {
         if (!opts || !log_level)
                 return STR_EMPTY;
@@ -194,7 +194,7 @@ static const char *create_msg_buffer(msg_buff_opt_t *opts, log_level_t *log_leve
         /* Format from which the log message will be generated */
         const char *string_format;
         if (!log_level->msg_format) {
-                string_format = (const char *)get_opt(OPTIONS_DEF_MSG_FORMAT);
+                string_format = (const char *)cclog_get_opt(OPTIONS_DEF_MSG_FORMAT);
         } else {
                 string_format = log_level->msg_format;
         }
@@ -269,7 +269,7 @@ int _cclogger_log(int line, const char* file, const char *func,
         }
 
         /* Getting the log level */
-        log_level_t *log_level = llist_get_index(log_levels_list, level);
+        cclog_log_level_t *log_level = cclog_llist_get_index(log_levels_list, level);
         if (!log_level) {
                 cclog_error("Log level with index %d doesnt exist", level);
                 goto exit;
@@ -286,7 +286,7 @@ int _cclogger_log(int line, const char* file, const char *func,
                     (log_level->msg_format) ? log_level->msg_format : "NULL", log_level->verbosity);
         
         /* Check whether log level falls into the log verbosity */
-        if (log_level->verbosity > *(int*)get_opt(OPTIONS_VERBOSITY)) {
+        if (log_level->verbosity > *(int*)cclog_get_opt(OPTIONS_VERBOSITY)) {
                 cclog_debug("Log level verbosity %d which is higher than logger");
                 return 0;
         }
@@ -301,7 +301,7 @@ int _cclogger_log(int line, const char* file, const char *func,
         };
 
         /* getting log file */
-        FILE* log_file = (FILE*)get_opt(OPTIONS_LOG_FILE);
+        FILE* log_file = (FILE*)cclog_get_opt(OPTIONS_LOG_FILE);
         if (!log_file) {
                 cclog_error("CRITICAL: Log file is not opened, did you call cclog_init()?");
                 goto exit;
@@ -340,12 +340,12 @@ int _cclogger_log(int line, const char* file, const char *func,
         }
 
         /* Set the last callback */
-        set_opt(OPTIONS_LAST_CALLBACK, log_level->callback);
+        cclog_set_opt(OPTIONS_LAST_CALLBACK, log_level->callback);
 exit:
         va_end(args);
 
         /* Set the last return value */
-        set_opt(OPTIONS_LAST_LOG_RET, &rv);
+        cclog_set_opt(OPTIONS_LAST_LOG_RET, &rv);
         return rv;
 }
 
@@ -357,7 +357,7 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
         const char *msg_format, int verbosity_level)
 {
         /* Allocate the level struct on the heap */
-        log_level_t *level = calloc(1, sizeof(log_level_t)); 
+        cclog_log_level_t *level = calloc(1, sizeof(cclog_log_level_t)); 
         if (!level) {
                 cclog_error("Failed to allocate space for log level");
                 goto error;
@@ -384,18 +384,18 @@ int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
          */
         if (!log_levels_list) {
                 cclog_debug("Initialising new log_levels_list");
-                log_levels_list = llist_init(level);
+                log_levels_list = cclog_llist_init(level);
                 if (!log_levels_list) {
                         cclog_error("CRITICAL: Failed to initialise a list of log_levels");
                         goto error;
                 }
         } else {
-                if_failed(llist_add(log_levels_list, level), error);
+                if_failed(cclog_llist_add(log_levels_list, level), error);
         }
 
         /* This is needed for server to have the most recent configuration */
-        if (is_server_enabled())
-                json_load_current_config();
+        if (cclog_is_server_enabled())
+                cclog_json_load_current_config();
 
         return 0;
 error:
@@ -408,7 +408,7 @@ static int log_levels_free(void *data, void *priv)
         if (!data)
                 return 0;
 
-        log_level_t *level = (log_level_t*)data;
+        cclog_log_level_t *level = (cclog_log_level_t*)data;
 
         if (level->cb_name)
                 free((void*)level->cb_name);
@@ -423,10 +423,10 @@ void cclogger_reset_log_levels()
         if (!log_levels_list)
                 return;
 
-        llist_foreach(log_levels_list, log_levels_free, NULL);
+        cclog_llist_foreach(log_levels_list, log_levels_free, NULL);
         
         /* If list exists, clean it and set its pointer to NULL */
-        llist_clean(log_levels_list);
+        cclog_llist_clean(log_levels_list);
         log_levels_list = NULL;
 }
 
@@ -501,7 +501,7 @@ int cclogger_set_default_message_format(const char *str)
         if (!str)
                 return -1;
 
-        if_failed(set_opt(OPTIONS_DEF_MSG_FORMAT, (void*) str), error);
+        if_failed(cclog_set_opt(OPTIONS_DEF_MSG_FORMAT, (void*) str), error);
 
         if_failed(message_format_parse(str), error);
 
@@ -514,17 +514,17 @@ error:
 void cclogger_set_verbosity_level(int verbosity) 
 {
         int opt = verbosity;
-        set_opt(OPTIONS_VERBOSITY, &opt);
+        cclog_set_opt(OPTIONS_VERBOSITY, &opt);
 }
 
 int cclogger_last_log_return_value() 
 {
-        return *(int*)get_opt(OPTIONS_LAST_LOG_RET);
+        return *(int*)cclog_get_opt(OPTIONS_LAST_LOG_RET);
 }
 
 int cclogger_recall_last_callback(void *priv)
 {
-        cclog_cb cb = (cclog_cb)get_opt(OPTIONS_LAST_CALLBACK);
+        cclog_cb cb = (cclog_cb)cclog_get_opt(OPTIONS_LAST_CALLBACK);
 
         if (!cb) {
                 return -1;
@@ -541,62 +541,62 @@ int export_log_level(void *data, void *priv)
 
         char buffer[MSG_SIZE];
 
-        log_level_t *log_level = (log_level_t *)data;
+        cclog_log_level_t *log_level = (cclog_log_level_t *)data;
 
         /* Since we are in array, the name will be ignored regardless */
-        json_add_object("log_level");
+        cclog_json_add_object("log_level");
 
-        json_add_parameter("log_to_tty", bool_to_str(log_level->log_to_tty));
-        json_add_parameter("log_to_file", bool_to_str(log_level->log_to_file));
+        cclog_json_add_parameter("log_to_tty", cclog_bool_to_str(log_level->log_to_tty));
+        cclog_json_add_parameter("log_to_file", cclog_bool_to_str(log_level->log_to_file));
         
         sprintf(buffer, "%d", log_level->color);
-        json_add_parameter("color", buffer);
+        cclog_json_add_parameter("color", buffer);
         sprintf(buffer, "%d", log_level->verbosity);
-        json_add_parameter("verbosity", buffer);
+        cclog_json_add_parameter("verbosity", buffer);
 
         if (log_level->msg_format) {
                 sprintf(buffer, "\"%s\"", log_level->msg_format);
-                json_add_parameter("msg_format", buffer);
+                cclog_json_add_parameter("msg_format", buffer);
         }
 
         if (log_level->callback && log_level->cb_name) {
                 sprintf(buffer, "\"%s\"", log_level->cb_name);
-                json_add_parameter("callback", buffer);
+                cclog_json_add_parameter("callback", buffer);
         }
         
-        json_end_object();
+        cclog_json_end_object();
 
         return 0;
 }
 
-void json_load_current_config()
+void cclog_json_load_current_config()
 {
         char buff[BUFSIZ];
-        json_buffer_clear();
+        cclog_json_buffer_clear();
 
-        json_start_buffer();
-        sprintf(buff, "\"%s\"", (const char *)get_opt(OPTIONS_LOG_FILE_PATH));
-        json_add_parameter("log_file_path", buff);
-        sprintf(buff, "%d", *(int*)get_opt(OPTIONS_LOG_METHOD));
-        json_add_parameter("log_method", buff);;
-        sprintf(buff, "\"%s\"", (const char *)get_opt(OPTIONS_DEF_MSG_FORMAT));
-        json_add_parameter("def_msg_format", buff);
-        sprintf(buff, "%d", *(int*)get_opt(OPTIONS_VERBOSITY));
-        json_add_parameter("logger_verbosity", buff);
+        cclog_json_start_buffer();
+        sprintf(buff, "\"%s\"", (const char *)cclog_get_opt(OPTIONS_LOG_FILE_PATH));
+        cclog_json_add_parameter("log_file_path", buff);
+        sprintf(buff, "%d", *(int*)cclog_get_opt(OPTIONS_LOG_METHOD));
+        cclog_json_add_parameter("log_method", buff);;
+        sprintf(buff, "\"%s\"", (const char *)cclog_get_opt(OPTIONS_DEF_MSG_FORMAT));
+        cclog_json_add_parameter("def_msg_format", buff);
+        sprintf(buff, "%d", *(int*)cclog_get_opt(OPTIONS_VERBOSITY));
+        cclog_json_add_parameter("logger_verbosity", buff);
 
         
-        json_add_array("log_levels");
-        llist_foreach(log_levels_list, export_log_level, NULL);
-        json_end_array();
+        cclog_json_add_array("log_levels");
+        cclog_llist_foreach(log_levels_list, export_log_level, NULL);
+        cclog_json_end_array();
 
-        if (is_server_enabled()) {
-                json_add_object("server");
-                sprintf(buff, "%d", *(int*)get_opt(OPTIONS_SERVER_PORT));
-                json_add_parameter("port", buff);
-                json_end_object();
+        if (cclog_is_server_enabled()) {
+                cclog_json_add_object("server");
+                sprintf(buff, "%d", *(int*)cclog_get_opt(OPTIONS_SERVER_PORT));
+                cclog_json_add_parameter("port", buff);
+                cclog_json_end_object();
         }
         
-        json_end_buffer();
+        cclog_json_end_buffer();
 }
 
 int cclogger_export_config_json(const char *path)
@@ -609,9 +609,9 @@ int cclogger_export_config_json(const char *path)
                 return -1;
         }
 
-        json_load_current_config();
+        cclog_json_load_current_config();
 
-        fprintf(file, "%s", json_get_buffer());
+        fprintf(file, "%s", cclog_json_get_buffer());
 
         fclose(file);
         return 0;
@@ -652,37 +652,37 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
         char *cb_map = NULL;
         int verbosity_level = 0;
 
-        json_param_t *param = NULL;
+        cclog_json_param_t *param = NULL;
 
-        /* This will loop through all objects in the array returned by json_get_array */
-        while ((object = json_get_object_from_array((char*)json, index)) != NULL) {
+        /* This will loop through all objects in the array returned by cclog_json_get_array */
+        while ((object = cclog_json_get_object_from_array((char*)json, index)) != NULL) {
                 if (!strcmp(object, STR_EMPTY))
                         break;
 
                 cclog_debug("JSON: loading log_level from object\n>>>%s<<<\n", object);
 
-                param = json_get_param(object, "log_to_tty");
+                param = cclog_json_get_param(object, "log_to_tty");
                 if (!param || param->type != JSON_PARAM_BOOELAN) {
                         cclog_error("JSON: Invalid value for log_to_tty");
                         goto error;
                 }
                 log_to_tty = param->boolean;
 
-                param = json_get_param(object, "log_to_file");
+                param = cclog_json_get_param(object, "log_to_file");
                 if (!param || param->type != JSON_PARAM_BOOELAN) {
                         cclog_error("JSON: Invalid value for log_to_file");
                         goto error;
                 }
                 log_to_file = param->boolean;
 
-                param = json_get_param(object, "color");
+                param = cclog_json_get_param(object, "color");
                 if (!param || param->type != JSON_PARAM_NUMBER) {
                         cclog_error("JSON: Invalid value for color");
                         goto error;
                 }
                 color = param->number;
 
-                param = json_get_param(object, "verbosity");
+                param = cclog_json_get_param(object, "verbosity");
                 if (!param || param->type != JSON_PARAM_NUMBER) {
                         cclog_error("JSON: Invalid value for verbosity");
                         goto error;
@@ -693,7 +693,7 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
                  * Since we need the strings copied, we use strdup. 
                  * This needs to be addressed because it causes a memory leak
                  */
-                param = json_get_param(object, "msg_format");
+                param = cclog_json_get_param(object, "msg_format");
                 if (param) {
                         if (param->type != JSON_PARAM_STRING) {
                                 cclog_error("JSON: Invalid value for msg_format");
@@ -705,7 +705,7 @@ static int json_load_log_levels(cclog_callback_mapping_t cb_mappings[], const ch
                 }
 
                 /* Same story here as above */
-                param = json_get_param(object, "callback");
+                param = cclog_json_get_param(object, "callback");
                 if (param) {
                         if (param->type != JSON_PARAM_STRING) {
                                 cclog_error("JSON: Invalid value for callback");
@@ -750,46 +750,46 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
 
         int rv = -1;
 
-        if (*(int*)get_opt(OPTIONS_LOGGER_INITIALISED) == 0) {
+        if (*(int*)cclog_get_opt(OPTIONS_LOGGER_INITIALISED) == 0) {
                 cclog_error("Logger not initialised, use cclogger_init() first");
                 return rv;
         }
 
         int val = 1;
-        set_opt(OPTIONS_LOADED_FROM_JSON, &val);
+        cclog_set_opt(OPTIONS_LOADED_FROM_JSON, &val);
         
-        json_param_t *param = NULL;
+        cclog_json_param_t *param = NULL;
 
         /* Getting the entire file into a json buffer */
-        if_failed(json_read_file(path), error);
-        const char *json = json_get_file_buffer();
+        if_failed(cclog_json_read_file(path), error);
+        const char *json = cclog_json_get_file_buffer();
 
         /* Setting default string format */
-        param = json_get_param(json, "def_msg_format");
+        param = cclog_json_get_param(json, "def_msg_format");
         if (!param) {
                 cclog_error("Failed to retrieve default message from file");
                 goto error;
         }
 
-        if (set_opt(OPTIONS_DEF_MSG_FORMAT, param->string) < 0) {
+        if (cclog_set_opt(OPTIONS_DEF_MSG_FORMAT, param->string) < 0) {
                 cclog_error("Failed to set default message format");
                 goto error;
         }
 
         /* Setting verbosity level */
-        param = json_get_param(json, "logger_verbosity");
+        param = cclog_json_get_param(json, "logger_verbosity");
         if (!param) {
                 cclog_error("Failed to retrieve verbosity from file");
                 goto error;
         }
 
-        if (set_opt(OPTIONS_VERBOSITY, &param->number) < 0) {
+        if (cclog_set_opt(OPTIONS_VERBOSITY, &param->number) < 0) {
                 cclog_error("Failed to set verbosity format");
                 goto error;
         }
 
         /* Getting array of log levels */
-        char *log_levels = json_get_array(json, "log_levels");
+        char *log_levels = cclog_json_get_array(json, "log_levels");
         
         if_null(log_levels, error);
         if_failed(json_load_log_levels(cb_mappings, log_levels), error);
@@ -797,9 +797,9 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
         free(log_levels);
 
         /* Setting up server */
-        char *server = json_get_object(json, "server");
+        char *server = cclog_json_get_object(json, "server");
         if (server) {
-                param = json_get_param(server, "port");
+                param = cclog_json_get_param(server, "port");
                 if (!param || param->type != JSON_PARAM_NUMBER) {
                         cclog_error("Failed to initilise server");
                         goto exit;
@@ -812,7 +812,7 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
         }
 
 exit:
-        json_free_file_buffer();
+        cclog_json_free_file_buffer();
         return rv;
 error:
         cclog_error("JSON: Could not load config from %s", path);
@@ -821,7 +821,7 @@ error:
 
 int cclogger_server_start(int port)
 {
-        if (!is_initialised()) {
+        if (!cclog_is_initialised()) {
                 cclog_error("logger is not initialised, did you use cclogger_init()?");
                 return -1;
         }
@@ -831,23 +831,23 @@ int cclogger_server_start(int port)
                 return -1;
         }
 
-        int sock_fd = server_create_socket(port);
+        int sock_fd = cclog_server_create_socket(port);
         if (sock_fd < 0) {
                 goto error;
         }
 
-        int server_pid = server_create_process(sock_fd);
+        int server_pid = cclog_server_create_process(sock_fd);
         if (server_pid < 0) {
                 goto error;
         }
 
         int enabled = 1;
-        if_failed(set_opt(OPTIONS_SERVER_ENABLED, &enabled), error);
-        if_failed(set_opt(OPTIONS_SERVER_PID, &server_pid), error);
-        if_failed(set_opt(OPTIONS_SERVER_PORT, &port), error);
+        if_failed(cclog_set_opt(OPTIONS_SERVER_ENABLED, &enabled), error);
+        if_failed(cclog_set_opt(OPTIONS_SERVER_PID, &server_pid), error);
+        if_failed(cclog_set_opt(OPTIONS_SERVER_PORT, &port), error);
 
         /* Load the most current configuration */
-        json_load_current_config();
+        cclog_json_load_current_config();
         return server_pid;
 error:
         cclog_error("Failed to initialise server on port %d", port);
@@ -856,28 +856,28 @@ error:
 
 int cclogger_server_stop()
 {
-        if (!is_server_enabled() || !is_initialised()) {
+        if (!cclog_is_server_enabled() || !cclog_is_initialised()) {
                 cclog_error("Server is not initialised");
                 return -1;
         }
 
-        int pid = *(int*)get_opt(OPTIONS_SERVER_PID);
+        int pid = *(int*)cclog_get_opt(OPTIONS_SERVER_PID);
         cclog_debug("Sending sigint to main server process with pid %d", pid);
 
         kill(pid, SIGINT);
 
         int val = 0;
-        set_opt(OPTIONS_SERVER_ENABLED, &val);
+        cclog_set_opt(OPTIONS_SERVER_ENABLED, &val);
 
         return 0;
 }
 
 int cclogger_server_pid()
 {
-        if (!is_server_enabled() || !is_initialised()) {
+        if (!cclog_is_server_enabled() || !cclog_is_initialised()) {
                 cclog_error("Server is not initialised");
                 return -1;
         }
-        return *(int*)get_opt(OPTIONS_SERVER_PID);
+        return *(int*)cclog_get_opt(OPTIONS_SERVER_PID);
 }
 

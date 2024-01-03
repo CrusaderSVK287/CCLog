@@ -45,7 +45,7 @@ typedef enum option {
  * @opt: option of which value we want to get
  * @return: value of option as a void pointer.
  */
-void* get_opt(option_t opt);
+void* cclog_get_opt(option_t opt);
 
 /**
  * Function sets and option value based on arguments (see enum option_t)
@@ -53,16 +53,16 @@ void* get_opt(option_t opt);
  * @value: value to be assigned to the option 
  * @return: 0 on success, -1 on failure
  */
-int set_opt(option_t opt, void *value);
+int cclog_set_opt(option_t opt, void *value);
 
 /**
  * Function cleans up everything that need to be from options (frees memory,
  * closes files etc)
  */
-void cleanup_opt();
+void cclog_cleanup_opt();
 
-int is_initialised();
-int is_server_enabled();
+int cclog_is_initialised();
+int cclog_is_server_enabled();
 
 #endif // !__OPTIONS_H__
 

@@ -15,7 +15,7 @@
 #define JSON_BUFF_SIZE 10000
 #define BUFF_SIZE 1000
 
-bool json_is_valid(const char *json) {
+bool cclog_json_is_valid(const char *json) {
         int len = strlen(json);
         int braces = 0, brackets = 0;
         bool inString = false;
@@ -60,20 +60,20 @@ static int indent_level = 0;
 static bool in_array = false;
 
 /* clears buffer */
-void json_buffer_clear()
+void cclog_json_buffer_clear()
 {
         memset(json_buffer, 0, JSON_BUFF_SIZE);
         json_buffer_lenght = 0;
         indent_level = 0;
 }
 
-const char *json_get_buffer() 
+const char *cclog_json_get_buffer() 
 {
         cclog_debug("JSON: requested buffer");
         return json_buffer;
 }
 
-int json_init_buffer()
+int cclog_json_init_buffer()
 {
         cclog_debug("JSON: init buffer");
         json_buffer = mmap(NULL, JSON_BUFF_SIZE, PROT_READ | PROT_WRITE, 
@@ -108,7 +108,7 @@ static void buffer_remove_last_coma()
         }
 }
 
-int json_start_buffer()
+int cclog_json_start_buffer()
 {
         cclog_debug("JSON: Buffer start");
         if (strlen(json_buffer) != 0) {
@@ -122,7 +122,7 @@ int json_start_buffer()
         return 0;
 }
 
-int json_add_object(const char *name)
+int cclog_json_add_object(const char *name)
 {
         cclog_debug("JSON: adding object %s", name);
         if (!name)
@@ -143,7 +143,7 @@ int json_add_object(const char *name)
         return 0;
 }
 
-int json_add_array(const char *name)
+int cclog_json_add_array(const char *name)
 {
         cclog_debug("JSON: adding array %s", name);
         if (!name)
@@ -160,7 +160,7 @@ int json_add_array(const char *name)
         return 0;
 }
 
-int json_add_parameter(const char *key, const char *value)
+int cclog_json_add_parameter(const char *key, const char *value)
 {
         cclog_debug("JSON: adding parameter key: %s ,value: %s", key, value);
         if (!key || !value)
@@ -173,7 +173,7 @@ int json_add_parameter(const char *key, const char *value)
         return 0;
 }
 
-int json_end_object()
+int cclog_json_end_object()
 {
         cclog_debug("JSON: end object");
         /* Remove , from the last parameter in the object */
@@ -185,7 +185,7 @@ int json_end_object()
         return 0;
 }
 
-int json_end_array()
+int cclog_json_end_array()
 {
         cclog_debug("JSON: end array");
         /* Remove last , in the last object in the array */
@@ -198,7 +198,7 @@ int json_end_array()
         return 0;
 }
 
-int json_end_buffer()
+int cclog_json_end_buffer()
 {
         cclog_debug("JSON: end buffer");
         /* Remove last , in paramter, object or array in the entire buffer */
@@ -220,13 +220,13 @@ int json_end_buffer()
 
 static char *json_file_buffer = NULL;
 
-const char *json_get_file_buffer()
+const char *cclog_json_get_file_buffer()
 {
         cclog_debug("Requested json file buffer");
         return json_file_buffer;
 }
 
-void json_free_file_buffer()
+void cclog_json_free_file_buffer()
 {
         if (json_file_buffer) {
                 free(json_file_buffer);
@@ -234,7 +234,7 @@ void json_free_file_buffer()
         }
 }
 
-int json_read_file(const char *path)
+int cclog_json_read_file(const char *path)
 {
         if (!path)
                 return -1;
@@ -272,14 +272,14 @@ error:
         return rv;
 }
 
-json_param_t *json_get_param(const char *json, const char *key)
+cclog_json_param_t *cclog_json_get_param(const char *json, const char *key)
 {
         if (!json || !key)
                 return NULL;
 
         cclog_debug("JSON: aquiring value for key %s", key);
 
-        static json_param_t rv = {};
+        static cclog_json_param_t rv = {};
 
         char format_buff[BUFSIZ];
         static char scan_buff[BUFSIZ];
@@ -309,7 +309,7 @@ json_param_t *json_get_param(const char *json, const char *key)
         /* If the value is true or false its a boolean*/
         if (!strcmp(scan_buff, "true") || !strcmp(scan_buff, "false")) {
                 rv.type = JSON_PARAM_BOOELAN;
-                rv.boolean = str_to_bool(scan_buff);
+                rv.boolean = cclog_str_to_bool(scan_buff);
                 cclog_debug("JSON: key %s is a boolean of value %d", key, rv.boolean);
                 goto exit;
         }
@@ -400,17 +400,17 @@ static char *json_get_nested_structure(const char *json, const char *key,
         return buff;
 }
 
-char *json_get_object(const char *json, const char *key)
+char *cclog_json_get_object(const char *json, const char *key)
 {
         return json_get_nested_structure(json, key, "{", "}");
 }
 
-char *json_get_array(const char *json, const char *key)
+char *cclog_json_get_array(const char *json, const char *key)
 {
         return json_get_nested_structure(json, key, "[", "]");
 }
 
-const char *json_get_object_from_array(char *array, int index)
+const char *cclog_json_get_object_from_array(char *array, int index)
 {
         if (!array || index < 0)
                 return NULL;

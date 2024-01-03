@@ -4,12 +4,12 @@
 /**
  * Function creates a non-blocking socket on given port and returns fd for it 
  */
-int server_create_socket(int port);
+int cclog_server_create_socket(int port);
 
 /**
  * Function creates main server process and returns its pid
  */
-int server_create_process(int fd);
+int cclog_server_create_process(int fd);
 
 #endif // !__CCLOG_SERVER_H__
 
