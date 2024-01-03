@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-struct tm *util_current_timeinfo()
+struct tm *cclog_util_current_timeinfo()
 {
         /* Get current time */
         time_t rawtime;
@@ -14,17 +14,17 @@ struct tm *util_current_timeinfo()
         return timeinfo;
 }
 
-const char *bool_to_str(bool b)
+const char *cclog_bool_to_str(bool b)
 {
         return (b) ? "true" : "false";
 }
 
-bool str_to_bool(const char *s)
+bool cclog_str_to_bool(const char *s)
 {
         return (!strcmp(s, "true")) ? true : false;
 }
 
-char *replace_last_char(char *s, char old_c, char new_c)
+char *cclog_replace_last_char(char *s, char old_c, char new_c)
 {
         for (int i = strlen(s); i >= 0; i--) {
                 if (s[i] == old_c) {

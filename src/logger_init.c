@@ -29,9 +29,9 @@ static int open_single_file(const char *path, const char *proc_name)
 
         /* Set the log file option */
         cclog_debug("Opening log file: %s", buff);
-        if_failed(set_opt(OPTIONS_LOG_FILE, buff), error);
+        if_failed(cclog_set_opt(OPTIONS_LOG_FILE, buff), error);
         int val = LOGGING_SINGLE_FILE;
-        if_failed(set_opt(OPTIONS_LOG_METHOD, &val), error);
+        if_failed(cclog_set_opt(OPTIONS_LOG_METHOD, &val), error);
         
         return 0;
 error:
@@ -47,7 +47,7 @@ static int open_multiple_file_mode(const char *path, const char *proc_name)
         char time_buf[128];
 
         /* Get current time to prepend to filename */
-        struct tm *timeinfo = util_current_timeinfo();
+        struct tm *timeinfo = cclog_util_current_timeinfo();
 
         sprintf(time_buf ,"%04d-%02d-%02d_%02d:%02d:%02d", 
                 timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, 
@@ -65,9 +65,9 @@ static int open_multiple_file_mode(const char *path, const char *proc_name)
 
         /* Set the log file option */
         cclog_debug("Opening log file: %s\n", buff);
-        if_failed(set_opt(OPTIONS_LOG_FILE, buff), error);
+        if_failed(cclog_set_opt(OPTIONS_LOG_FILE, buff), error);
         int val = LOGGING_MULTIPLE_FILES;
-        if_failed(set_opt(OPTIONS_LOG_METHOD, &val), error);
+        if_failed(cclog_set_opt(OPTIONS_LOG_METHOD, &val), error);
 
         return 0; 
 error:
@@ -98,7 +98,7 @@ int cclogger_init(logging_type_t type, const char* path, const char *proc_name)
                 goto error;
         }
 
-        json_init_buffer();
+        cclog_json_init_buffer();
  
         cclogger_set_verbosity_level(10);
 
@@ -106,7 +106,7 @@ int cclogger_init(logging_type_t type, const char* path, const char *proc_name)
         if_failed(add_default_log_levels(), error);
 
         /* Set default msg format */
-        if_failed(set_opt(OPTIONS_DEF_MSG_FORMAT, DEFAULT_MSG_FORMAT), error);
+        if_failed(cclog_set_opt(OPTIONS_DEF_MSG_FORMAT, DEFAULT_MSG_FORMAT), error);
 
         /* If all other init functions passed, open/crete a log file */
         if (type == LOGGING_SINGLE_FILE) {
@@ -121,17 +121,17 @@ int cclogger_init(logging_type_t type, const char* path, const char *proc_name)
         }
 
         /* Check whether file was opened */
-        if (get_opt(OPTIONS_LOG_FILE) == NULL) {
+        if (cclog_get_opt(OPTIONS_LOG_FILE) == NULL) {
                 cclog_error("File could not be opened");
                 goto error;
         }
 
         int val = 1;
-        set_opt(OPTIONS_LOGGER_INITIALISED, &val);
+        cclog_set_opt(OPTIONS_LOGGER_INITIALISED, &val);
         val = 0;
-        set_opt(OPTIONS_LOADED_FROM_JSON, &val);
+        cclog_set_opt(OPTIONS_LOADED_FROM_JSON, &val);
         /* init time doesnt need a value passed */
-        set_opt(OPTIONS_INIT_TIME, NULL);
+        cclog_set_opt(OPTIONS_INIT_TIME, NULL);
 
         return 0;
 error:
@@ -143,14 +143,14 @@ int cclogger_uninit()
 {
         cclogger_reset_log_levels();
 
-        if (is_server_enabled()) {
+        if (cclog_is_server_enabled()) {
                 cclogger_server_stop();
         }
 
-        cleanup_opt();
+        cclog_cleanup_opt();
 
         int val = 0;
-        set_opt(OPTIONS_LOGGER_INITIALISED, &val);
+        cclog_set_opt(OPTIONS_LOGGER_INITIALISED, &val);
         return 0;
 }
 

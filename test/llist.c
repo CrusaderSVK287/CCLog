@@ -14,7 +14,7 @@ void add_to_list(cclog_llist_t* llist)
         test_struct->a = 5;
         test_struct->b = 8;
 
-        llist_add(llist, test_struct);
+        cclog_llist_add(llist, test_struct);
 }
 
 void llist_test()
@@ -32,25 +32,25 @@ void llist_test()
 
         int *res = NULL;
 
-        cclog_llist_t *llist = llist_init(a);
+        cclog_llist_t *llist = cclog_llist_init(a);
 
-        llist_add(llist, b);
-        llist_add(llist, c);
-        llist_add(llist, d);
+        cclog_llist_add(llist, b);
+        cclog_llist_add(llist, c);
+        cclog_llist_add(llist, d);
         add_to_list(llist);
 
         for(int i = 0; i < 4; i++) {
-                res = (int *)llist_get_index(llist, i);
+                res = (int *)cclog_llist_get_index(llist, i);
                 printf("llist test #%d: Result: %d\n", i+1, *res);
         }
 
-        res = (int *)llist_get_index(llist,2);
+        res = (int *)cclog_llist_get_index(llist,2);
         printf("llist test #5: Expected 13, Result: %d\n", *res);
 
 
-        s_t *test_struct = (s_t *)llist_get_index(llist, 5);
+        s_t *test_struct = (s_t *)cclog_llist_get_index(llist, 5);
         printf("llist test #6: Expected NULL, Result: %s\n", test_struct? "Not null" : "NULL");
 
-        llist_clean(llist);
+        cclog_llist_clean(llist);
 }
 

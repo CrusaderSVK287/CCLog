@@ -52,12 +52,12 @@ typedef struct {
 
 static void cleanup_server_process()
 {
-        json_free_file_buffer();
+        cclog_json_free_file_buffer();
         cclogger_reset_log_levels();
-        cleanup_opt();
+        cclog_cleanup_opt();
 }
 
-int server_create_socket(int port)
+int cclog_server_create_socket(int port)
 {
         if (port < 0)
                 return -1;
@@ -152,7 +152,7 @@ static char *server_mapping_config(char *response, const char *request)
         char buff[BUFSIZ];
         ssize_t json_buffer_lenght = 0;
 
-        json_buffer_lenght = strlen(json_get_buffer());
+        json_buffer_lenght = strlen(cclog_json_get_buffer());
 
         /* add header fields*/
         snprintf(buff, BUFSIZ, "%s %ld\r\n", HEADER_CONTENT_LENGHT, json_buffer_lenght);
@@ -172,7 +172,7 @@ static char *server_mapping_config(char *response, const char *request)
         if_null(response, error);
 
         /* add json data */
-        strcat(response, json_get_buffer());
+        strcat(response, cclog_json_get_buffer());
         strcat(response, "\r\n\r\n");
 error:
         return response;
@@ -222,7 +222,7 @@ static char *server_create_log_page_response(char *response, const char *path)
                  HEADER_CONTENT_LENGHT, bytes, 
                  path, 
                  /* if we have multiple logs, we want to get back to the list instead of index */
-                 (*(int*)get_opt(OPTIONS_LOG_METHOD) == LOGGING_SINGLE_FILE) ? "/" : "/log",
+                 (*(int*)cclog_get_opt(OPTIONS_LOG_METHOD) == LOGGING_SINGLE_FILE) ? "/" : "/log",
                  file_data);
 
         free(file_data);
@@ -297,17 +297,17 @@ error:
 
 static char *server_mapping_log(char *response, const char *request)
 {
-        int method = *(int*)get_opt(OPTIONS_LOG_METHOD);
+        int method = *(int*)cclog_get_opt(OPTIONS_LOG_METHOD);
 
         /* If we have one file, use path for it */
         if (method == LOGGING_SINGLE_FILE) {
                 return server_create_log_page_response(response,
-                                (char*)get_opt(OPTIONS_LOG_FILE_PATH)); 
+                                (char*)cclog_get_opt(OPTIONS_LOG_FILE_PATH)); 
         }
 
         /* If we have multiple files */
-        char *dir_path = strdup((char*)get_opt(OPTIONS_LOG_FILE_PATH));
-        replace_last_char(dir_path, '/', 0);
+        char *dir_path = strdup((char*)cclog_get_opt(OPTIONS_LOG_FILE_PATH));
+        cclog_replace_last_char(dir_path, '/', 0);
 
         /* If the request contains the entry */
         if (strstr(request, "?entry=")) {
@@ -341,7 +341,7 @@ static server_mapping_data_fetch_t get_func_from_map(const char *map)
                 return NULL;
 
         char *map_copy = strdup(map);
-        replace_last_char(map_copy, '?', 0);
+        cclog_replace_last_char(map_copy, '?', 0);
 
         int i = 0;
         while (maps[i].map && maps[i].func) {
@@ -528,7 +528,7 @@ error:
         return rv;
 }
 
-int server_create_process(int fd)
+int cclog_server_create_process(int fd)
 {
         if (fd < 0)
                 return -1;

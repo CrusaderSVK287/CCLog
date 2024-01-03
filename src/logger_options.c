@@ -161,9 +161,9 @@ static int set_verbosity_level(int value) {
 /*   option api functions    */
 
 /* Function returns the value of option specified in opt */
-void* get_opt(option_t opt)
+void* cclog_get_opt(option_t opt)
 {
-        cclog_debug("called get_opt for option %d", opt);
+        cclog_debug("called cclog_get_opt for option %d", opt);
         switch (opt) {
                 case OPTIONS_LOGGER_INITIALISED: return get_logger_initialised();
                 case OPTIONS_LOG_FILE: return get_log_file();
@@ -183,9 +183,9 @@ void* get_opt(option_t opt)
 }
 
 /* Function will set an options (opt) value (value) */
-int set_opt(option_t opt, void *value)
+int cclog_set_opt(option_t opt, void *value)
 {
-        cclog_debug("called set_opt for option %d", opt);
+        cclog_debug("called cclog_set_opt for option %d", opt);
         int ret = 0;
 
         switch (opt) {
@@ -207,13 +207,13 @@ int set_opt(option_t opt, void *value)
 
         /* This is needed for server to always have access to most recent config */
         if (server_enabled)
-                json_load_current_config();
+                cclog_json_load_current_config();
 
         return ret;
 }
 
 /* Function cleans up the options */
-void cleanup_opt()
+void cclog_cleanup_opt()
 {
         cclog_debug("Cleaning options");
         if (log_file) {
@@ -232,6 +232,6 @@ void cleanup_opt()
         }
 }
 
-int is_initialised() {return logger_initialised;}
-int is_server_enabled() {return server_enabled;}
+int cclog_is_initialised() {return logger_initialised;}
+int cclog_is_server_enabled() {return server_enabled;}
 
