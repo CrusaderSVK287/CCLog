@@ -154,6 +154,6 @@ stderr output:
 ## C++ Wrapper
 A C++ wrapper was provided for better integration with C++ applications.
 You can access all the functions through `cclog` namespace.
-Some features are limited, such as callbacks, *which are not working* at the moment.
+Some features are limited, 
 There is a warning for each function if there is an issue with it.
 Use he C++ wrapper by including `cclog.hpp` instead of `cclog.h`.
