@@ -3,7 +3,7 @@
 
 #include <string>
 #define __CCLOG_VERSION__ "v1.3.0"
-#define __CCLOG_CXX_VERSION__ "v1.0.0"
+#define __CCLOG_CXX_VERSION__ "v1.0.1"
 
 namespace cclog {
 
