@@ -1,70 +1,24 @@
-#ifndef __CCLOG_H__
-#define __CCLOG_H__
+#ifndef __CCLOG_HPP__
+#define __CCLOG_HPP__
 
+#include <string>
 #define __CCLOG_VERSION__ "v1.3.0"
-#include <stdbool.h>
+#define __CCLOG_CXX_VERSION__ "v1.0.0"
 
-/** 
- * Log callback function pointer typedef. Declare such function like this:
- * int name_of_cb_func(const char* msg, void *priv)
- * where msg is the generated log message and priv is any data user passed to 
- * the log function (se cclog() )
- */
-typedef int (*cclog_cb)(const char* msg, void* priv);
+namespace cclog {
 
-/**
- * Mapping structure that holds names of callback functions and pointers to 
- * those functions. Every callback MUST be mapped into the structure. 
- * It is highly recommended to put all callbacks to single map pool like this: 
- * static cclog_callback_mapping_t cclog_cb_maps[] = {
- *       {"callback_test", callback_test},
- *       {"another_callback", func_ptr},
- *       {...},
- *       {NULL, NULL}
- * };
- *
- * THE LAST ROW MUST BE NULL NULL (sentinel guard), OTHERWISE YOU RISK A 
- *                          SEGMENTATION FAULT
- *
- * This structure array needs to be passed to cclog_import_config() function 
- * for this function to be able to generate log levels with callbacks.
- * See the function declaration for more information
- */
-typedef struct cclog_cb_mapping {
-    const char *func_name;
-    cclog_cb func_ptr;
-} cclog_callback_mapping_t;
+extern "C" {
+#include <cclog.h>
+}
 
-typedef enum cclog_default_log_levels {
-    CCLOG_LEVEL_INFO,   /* Print to stderr in default color */
-    CCLOG_LEVEL_MSG,    /* Print to file only */
-    CCLOG_LEVEL_ERR,    /* Print to file and to stderr in red color */
-} cclog_default_log_levels_t;
-
-/* enum containing terminal colors that can be used to display message to tty */
-typedef enum cclog_tty_log_color {
-    CCLOG_TTY_CLR_DEF,  /* Default - use the default color of tty */
-    CCLOG_TTY_CLR_BLK,  /* Black */
-    CCLOG_TTY_CLR_RED,  /* Red */
-    CCLOG_TTY_CLR_GRN,  /* Green */
-    CCLOG_TTY_CLR_YEL,  /* Yellow */
-    CCLOG_TTY_CLR_BLU,  /* Blue */
-    CCLOG_TTY_CLR_MAG,  /* Magenta */
-    CCLOG_TTY_CLR_CYN,  /* Cyan */
-    CCLOG_TTY_CLR_WHT,  /* White */
-} cclog_tty_log_color_t;
-
-/**
- * Enum indicating which type of logging is going to be used
- * @LOGGING_SINGLE_FILE: All logs are going into a single file
- * @LOGGING_MULTIPLE_FILES: Logs are separated to multiple files which are
- * prepended with the date and time of start of the program
- */
-typedef enum logging_type {
-    LOGGING_SINGLE_FILE,
-    LOGGING_MULTIPLE_FILES
-} logging_type_t;
-
+/***********************************************************************
+ * This is a C++ wrapper for originaly C library.                      *
+ * This wrapper provides bindings to the C functions                   *
+ * that are more idiomatic torwards C++.                               *
+ * typedefs and enums are accessible through the cclog namespace.      *
+ * For documentation regarding those, look inside the cclog.h original *
+ * file. Function mappings will have documentation above them          *
+ ***********************************************************************/ 
 /**
  * Function initializes logger by opening the required log file.
  * This function must be called before any other functions are used.
@@ -83,21 +37,17 @@ typedef enum logging_type {
  *
  * Note: Eight path or proc_name MUST not be null
  */
-int cclogger_init(logging_type_t type, const char *path, const char *proc_name);
+inline int init(logging_type_t type, std::string path, std::string proc_name) {
+    return cclogger_init(type, path.c_str(), proc_name.c_str());
+}
 
 /**
  * Function deinits the logger, put this at the end of your program
  * @return: 0 on success, -1 on failure
  */
-int cclogger_uninit();
-
-/* DO NOT CALL DIRECTLY, USE cclog() MACRO */
-int _cclogger_log(int line, const char* file, const char *func,
-        int level, void* priv, const char *msg, ...);
-
-#ifdef _cclogger_log
-#undef _cclogger_log
-#endif /* ifdef _cclogger_log */
+inline int uninit() {
+    return cclogger_uninit();
+}
 
 /**
  * Function performs logging operations specified in the log_level, e.g. writes 
@@ -129,13 +79,21 @@ int _cclogger_log(int line, const char* file, const char *func,
  *      way as with printf for example, after this argument, the variable
  *      arguments for the formated string are passed
  */
-#define cclog(log_level, priv_data, msg, ...) (_cclogger_log)(__LINE__, __FILE__, \
-        __FUNCTION__, log_level, priv_data, msg, ## __VA_ARGS__)
-
-/* to prevent usage of the function itself */
-#define _cclogger_log(...) DO_NOT_CALL_DIRECTLY_USE_cclog_MACRO
+inline int log(int level, void* priv_data, std::string message) {
+    return cclog(level, priv_data, message.c_str());
+}
+inline int log(int level, std::string message) {
+    return cclog(level, nullptr, message.c_str());
+}
+#ifdef cclog 
+#undef cclog
+#endif
 
 /**
+ * WARNING FOR C++ USERS: callbacks dont work yet. All functions lack the callback 
+ * capability. Also, do not put "nullptr" as a message format override. 
+ * Use the overloaded function instead
+ *
  * Function adds a custom log level to the list of log levels user can use. 
  * @log_to_file: boolean determining whether the message is going to be logged to file 
  * @log_to_tty: boolean determining whether the message will be displayed to the stderr
@@ -149,18 +107,30 @@ int _cclogger_log(int line, const char* file, const char *func,
  *      higher than the logger verbosity, the log will not be made, nor any 
  *      callbacks will be called.
  */
-int cclogger_add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color, cclog_callback_mapping_t *callback, 
-        const char *msg_format_override, int verbosity_level);
+inline int add_log_level(bool log_to_file, bool log_to_tty,
+        cclog_tty_log_color_t color,
+        std::string message_format_override, int verbosity_level) {
+    return cclogger_add_log_level(log_to_file, log_to_tty, color, nullptr, 
+            message_format_override.c_str(), verbosity_level);
+}
+
+inline int add_log_level(bool log_to_file, bool log_to_tty,
+        cclog_tty_log_color_t color, int verbosity_level) {
+    return cclogger_add_log_level(log_to_file, log_to_tty, color, nullptr, 
+         nullptr, verbosity_level);
+}
 
 /**
  * Function removes all log levels, including default ones.
  * After invoking this function, user MUST add at least one custom log level 
  * to be able to use the logger. See cclogger_add_log_level() 
  */
-void cclogger_reset_log_levels();
+inline void reset_log_levels() {
+    cclogger_reset_log_levels();
+}
 
 /**
+ * Warning for C++ wrapper: variables utilizing __LINE__ and __FILE__ macros wont work, dont use them.
  * Function sets default message format for log messages. This format string 
  * looks like this: "[${DATE}_${TIME}]${FILE}:${LINE}:${MSG}"
  * This string dictates how log messages will look like. It contains variables
@@ -190,13 +160,17 @@ void cclogger_reset_log_levels();
  *      SEC - Current second
  * Note: All time and dates are local time
  */
-int cclogger_set_default_message_format(const char *str);
+inline int set_default_message_format(std::string format) {
+    return cclogger_set_default_message_format(format.c_str());
+}
 
 /**
  * Returns the returned value of the last cclog() function. 
  * Usefull for example for getting callback return value 
  */
-int cclogger_last_log_return_value();
+inline int last_log_retval() {
+    return cclogger_last_log_return_value();
+}
 
 /**
  * Sets verbosity level for logger. Each log level has a verbosity assigned 
@@ -205,8 +179,11 @@ int cclogger_last_log_return_value();
  * Default verbosity level for logger is 10 and all default log levels have 
  * default verbosity level set to 5
  */
-void cclogger_set_verbosity_level(int verbosity);
+inline void set_verbosity_level(int verbosity) {
+    cclogger_set_verbosity_level(verbosity);
+}
 
+// CALLBACKS NOT YET FIXED FOR C++ WRAPPER
 /**
  * Calls the callback function from the last log event with priv data.
  * NOTE: msg will be empty string instead of generated message
@@ -218,13 +195,17 @@ void cclogger_set_verbosity_level(int verbosity);
  * @return: -1 if the last callback is NULL, otherwise returns whatever
  *      the callback returns
  */
-int cclogger_recall_last_callback(void *priv);
+//inline int recall_callback(void *priv) {
+//    return cclogger_recall_last_callback(priv);
+//}
 
 /**
  * Function saves current cclogger config into a file provided in path. 
  * This file is stored in json format.
  */
-int cclogger_export_config_json(const char *path);
+inline int export_config(std::string path) {
+    return cclogger_export_config_json(path.c_str());
+}
 
 /**
  * Function load a configuration of logger from json file provided in path. 
@@ -234,7 +215,9 @@ int cclogger_export_config_json(const char *path);
  * sucj map.
  * Be advised that this function erases the current configuration.
  */
-int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mappings[]);
+inline int load_config(std::string path /*, cclog_callback_mapping_t cb_mappings[]*/) {
+    return cclogger_load_config_json(path.c_str(), nullptr);
+}
 
 /**
  * Function starts a http server on the given port. This server can provide 
@@ -246,17 +229,25 @@ int cclogger_load_config_json(const char *path, cclog_callback_mapping_t cb_mapp
  * @port: number of port for socket to be binded to 
  * @return: server PID on success, -1 on error
  */
-int cclogger_server_start(int port);
+inline int server_start(int port) {
+    return cclogger_server_start(port);
+}
 
 /**
  * Stops the http server if it is started
  */
-int cclogger_server_stop();
+inline int server_stop() {
+    return cclogger_server_stop();
+}
 
 /**
  * Returns the PID of the server process 
  */
-int cclogger_server_pid();
+inline int server_pid() {
+    return cclogger_server_pid();
+}
 
-#endif /* __CCLOG_H__ */
+} //namespace cclog
+
+#endif // !__CCLOG_HPP__
 
