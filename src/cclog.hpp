@@ -90,9 +90,8 @@ inline int log(int level, std::string message) {
 #endif
 
 /**
- * WARNING FOR C++ USERS: callbacks dont work yet. All functions lack the callback 
- * capability. Also, do not put "nullptr" as a message format override. 
- * Use the overloaded function instead
+ * WARNING FOR C++ USERS: do not put "nullptr" as a message format override. 
+ * Use the overloaded functions instead
  *
  * Function adds a custom log level to the list of log levels user can use. 
  * @log_to_file: boolean determining whether the message is going to be logged to file 
@@ -107,12 +106,6 @@ inline int log(int level, std::string message) {
  *      higher than the logger verbosity, the log will not be made, nor any 
  *      callbacks will be called.
  */
-inline int add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color,
-        std::string message_format_override, int verbosity_level) {
-    return cclogger_add_log_level(log_to_file, log_to_tty, color, nullptr, 
-            message_format_override.c_str(), verbosity_level);
-}
 
 inline int add_log_level(bool log_to_file, bool log_to_tty,
         cclog_tty_log_color_t color, int verbosity_level) {
@@ -120,6 +113,26 @@ inline int add_log_level(bool log_to_file, bool log_to_tty,
          nullptr, verbosity_level);
 }
 
+inline int add_log_level(bool log_to_file, bool log_to_tty,
+        cclog_tty_log_color_t color, int verbosity_level,
+        std::string message_format_override) {
+    return cclogger_add_log_level(log_to_file, log_to_tty, color, nullptr, 
+            message_format_override.c_str(), verbosity_level);
+}
+
+inline int add_log_level(bool log_to_file, bool log_to_tty,
+        cclog_tty_log_color_t color, int verbosity_level,
+        cclog_callback_mapping_t *cbm) {
+    return cclogger_add_log_level(log_to_file, log_to_tty, color, cbm, 
+         nullptr, verbosity_level);
+}
+
+inline int add_log_level(bool log_to_file, bool log_to_tty,
+        cclog_tty_log_color_t color, int verbosity_level,
+        cclog_callback_mapping_t *cbm, std::string message_format_override) {
+    return cclogger_add_log_level(log_to_file, log_to_tty, color, cbm, 
+         message_format_override.c_str(), verbosity_level);
+}
 /**
  * Function removes all log levels, including default ones.
  * After invoking this function, user MUST add at least one custom log level 
@@ -215,8 +228,8 @@ inline int export_config(std::string path) {
  * sucj map.
  * Be advised that this function erases the current configuration.
  */
-inline int load_config(std::string path /*, cclog_callback_mapping_t cb_mappings[]*/) {
-    return cclogger_load_config_json(path.c_str(), nullptr);
+inline int load_config(std::string path , cclog_callback_mapping_t cb_mappings[]) {
+    return cclogger_load_config_json(path.c_str(), cb_mappings);
 }
 
 /**

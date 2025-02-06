@@ -16,9 +16,19 @@
 
 const std::string conf_path = "/tmp/testconfig.json";
 
+int callback_test(const char *msg, void *priv){
+    return 10;;
+}
+
+static cclog::cclog_callback_mapping_t cbs[] = {
+    {"callback_test", callback_test},
+    {nullptr, nullptr}
+};
+
 void make_config() {
         // add one custom log level
         cclog::reset_log_levels();
+        cclog::add_log_level(true, true, cclog::CCLOG_TTY_CLR_BLU, 10, &cbs[0], "Callback ${UPTIME} ${MSG}");
         // since we cleared the log level list this level will have index of 0
         cclog::add_log_level(true, true, cclog::CCLOG_TTY_CLR_MAG, 10);
         // set default format
@@ -32,15 +42,15 @@ int main() {
     try {
         cclog::init(cclog::LOGGING_SINGLE_FILE, "/tmp/testlog", "test_proc_name");
 
-        make_config();
-        //cclog::load_config(conf_path);
+        //make_config();
+        cclog::load_config(conf_path, cbs);
 
         cclog::server_start(8000);
 
-        cclog::log(0, "Server pid is " + std::to_string(cclog::server_pid()));
-        cclog::log(0, "Performing operation...");
+        cclog::log(1, "Server pid is " + std::to_string(cclog::server_pid()));
+        cclog::log(1, "Performing operation...");
 
-        int result = 4 + 6;
+        int result = cclog::log(0, "Operating...");
         if (result == 10) {
             cclog::log(0, "Operation successfull: " + std::to_string(result));
         } else {
