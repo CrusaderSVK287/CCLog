@@ -1,7 +1,7 @@
 # CCLog
 ### Introduction
 CCLog ,Customizable C Logger, is a logging library written in C for Linux based operating systems.\
-It is simple to use and provides customizability features.
+It is simple to use and provides customizability features. Now also includes a C++ wrapper (Read bottom of readme)
 ***
 ## Main Features
 CCLog allows you to:
@@ -150,3 +150,10 @@ stderr output:
 ```
 [2023-8-23_16:9:52]logger.c:13:Error, bad result
 ```
+
+## C++ Wrapper
+A C++ wrapper was provided for better integration with C++ applications.
+You can access all the functions through `cclog` namespace.
+Some features are limited, such as callbacks, *which are not working* at the moment.
+There is a warning for each function if there is an issue with it.
+Use he C++ wrapper by including `cclog.hpp` instead of `cclog.h`.
