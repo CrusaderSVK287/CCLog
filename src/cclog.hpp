@@ -90,6 +90,10 @@ inline int log(int level, std::string message) {
 #endif
 
 /**
+ * WARNING FOR C++ USERS: callbacks dont work yet. All functions lack the callback 
+ * capability. Also, do not put "nullptr" as a message format override. 
+ * Use the overloaded function instead
+ *
  * Function adds a custom log level to the list of log levels user can use. 
  * @log_to_file: boolean determining whether the message is going to be logged to file 
  * @log_to_tty: boolean determining whether the message will be displayed to the stderr
@@ -104,10 +108,16 @@ inline int log(int level, std::string message) {
  *      callbacks will be called.
  */
 inline int add_log_level(bool log_to_file, bool log_to_tty,
-        cclog_tty_log_color_t color, cclog_callback_mapping_t *callback,
+        cclog_tty_log_color_t color,
         std::string message_format_override, int verbosity_level) {
-    return cclogger_add_log_level(log_to_file, log_to_tty, color, callback, 
+    return cclogger_add_log_level(log_to_file, log_to_tty, color, nullptr, 
             message_format_override.c_str(), verbosity_level);
+}
+
+inline int add_log_level(bool log_to_file, bool log_to_tty,
+        cclog_tty_log_color_t color, int verbosity_level) {
+    return cclogger_add_log_level(log_to_file, log_to_tty, color, nullptr, 
+         nullptr, verbosity_level);
 }
 
 /**
@@ -120,6 +130,7 @@ inline void reset_log_levels() {
 }
 
 /**
+ * Warning for C++ wrapper: variables utilizing __LINE__ and __FILE__ macros wont work, dont use them.
  * Function sets default message format for log messages. This format string 
  * looks like this: "[${DATE}_${TIME}]${FILE}:${LINE}:${MSG}"
  * This string dictates how log messages will look like. It contains variables
@@ -172,6 +183,7 @@ inline void set_verbosity_level(int verbosity) {
     cclogger_set_verbosity_level(verbosity);
 }
 
+// CALLBACKS NOT YET FIXED FOR C++ WRAPPER
 /**
  * Calls the callback function from the last log event with priv data.
  * NOTE: msg will be empty string instead of generated message
@@ -183,9 +195,9 @@ inline void set_verbosity_level(int verbosity) {
  * @return: -1 if the last callback is NULL, otherwise returns whatever
  *      the callback returns
  */
-inline int recall_callback(void *priv) {
-    return cclogger_recall_last_callback(priv);
-}
+//inline int recall_callback(void *priv) {
+//    return cclogger_recall_last_callback(priv);
+//}
 
 /**
  * Function saves current cclogger config into a file provided in path. 
@@ -203,8 +215,8 @@ inline int export_config(std::string path) {
  * sucj map.
  * Be advised that this function erases the current configuration.
  */
-inline int load_config(std::string path, cclog_callback_mapping_t cb_mappings[]) {
-    return cclogger_load_config_json(path.c_str(), cb_mappings);
+inline int load_config(std::string path /*, cclog_callback_mapping_t cb_mappings[]*/) {
+    return cclogger_load_config_json(path.c_str(), nullptr);
 }
 
 /**
